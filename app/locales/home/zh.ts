@@ -1,0 +1,83 @@
+export const homeTranslations = {
+  title: "主题商店",
+  subtitle: "自定义您的体验",
+  currentTheme: "当前主题",
+  applyTheme: "应用主题",
+  free: "免费",
+  pro: "专业版",
+  upgrade: "升级到专业版",
+  downgrade: "降级",
+  subscriptionStatus: {
+    basic: "基本版",
+    pro: "专业版"
+  },
+  premiumTitle: "高级功能",
+  premiumDesc: "获取独家主题和功能",
+  upgradeNow: "立即升级",
+  themes: {
+    light: "亮色主题",
+    dark: "暗色主题",
+    chocolate: "巧克力主题",
+    sweet: "甜心主题",
+    broccoli: "西兰花主题",
+    watermelon: "西瓜",
+    honey: "蜂蜜",
+    blueberry: "蓝莓"
+  },
+  apps: {
+    sectionTitle: "应用和工具",
+    sectionSubtitle: "营养旅程的实用工具",
+    tddCalculator: {
+      title: "TDD计算器",
+      description: "计算每日所需卡路里和最佳营养比例",
+      calculateButton: "计算我的TDD",
+      applyButton: "应用到我的设置",
+      successMessage: "设置更新成功！",
+      height: "身高",
+      weight: "体重",
+      age: "年龄",
+      gender: "性别",
+      activityLevel: "活动水平",
+      fitnessGoal: "健身目标",
+      muscleGain: "增肌",
+      fatLoss: "减脂",
+      both: "平衡/维持",
+      male: "男",
+      female: "女",
+      sedentary: "久坐",
+      lightlyActive: "轻度活动",
+      moderatelyActive: "中度活动",
+      veryActive: "剧烈活动",
+      extremelyActive: "极度活动",
+      results: {
+        yourTdd: "您的TDD:",
+        caloriesPerDay: "卡路里/天",
+        macroRatios: "推荐宏量营养素比例:",
+        adjustRatios: "调整比例:",
+        protein: "蛋白质",
+        carbs: "碳水化合物",
+        fat: "脂肪",
+        goalAdjustment: "根据健身目标调整",
+        baseCalories: "基础卡路里:",
+        muscleGainAdjustment: "(增肌+15%卡路里)",
+        fatLossAdjustment: "(减脂-20%卡路里)",
+        noAdjustment: "(维持卡路里)",
+        waterIntake: "推荐水摄入量:",
+        mlPerDay: "毫升/天",
+        waterIntakeExplanation: "基于您的体重 (35毫升 × 公斤)"
+      }
+    },
+    petGame: {
+      title: "营养宠物",
+      description: "通过达成营养目标照顾您的虚拟宠物",
+      startGame: "开始游戏",
+      continueGame: "继续游戏",
+      feedPet: "喂养宠物",
+      petStatus: "宠物状态:",
+      happiness: "幸福度",
+      health: "健康",
+      energy: "能量",
+      level: "等级"
+    }
+  }
+}; 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="#9333EA"/>
+  
+  <!-- Plate circle -->
+  <circle cx="256" cy="256" r="160" fill="white" fill-opacity="0.9"/>
+  
+  <!-- Fork -->
+  <path d="M170 150C170 150 170 190 170 230C170 270 140 275 140 310C140 345 170 345 170 345" stroke="#333" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Knife -->
+  <path d="M342 150C342 150 342 190 342 230C342 270 372 275 372 310C372 345 342 345 342 345" stroke="#333" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Apple shape -->
+  <path d="M256 180C290 180 320 210 320 240C320 280 290 330 256 330C222 330 192 280 192 240C192 210 222 180 256 180Z" fill="#FF6B6B"/>
+  
+  <!-- Leaf -->
+  <path d="M256 180C240 160 220 170 220 180C220 190 236 200 256 180Z" fill="#4CAF50"/>
+  
+  <!-- Sparkle accents -->
+  <circle cx="200" cy="200" r="8" fill="white"/>
+  <circle cx="320" cy="220" r="6" fill="white"/>
+  <circle cx="280" cy="280" r="7" fill="white"/>
+</svg> 

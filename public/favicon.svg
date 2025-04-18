@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="16" cy="16" r="15" fill="#9333EA" />
+  
+  <!-- Inner Circle -->
+  <circle cx="16" cy="16" r="12" fill="#7E22CE" />
+  
+  <!-- Plate/Bowl -->
+  <ellipse cx="16" cy="16" rx="10" ry="4" fill="#F9FAFB" />
+  <ellipse cx="16" cy="16" rx="8" ry="3" fill="#E5E7EB" />
+  
+  <!-- Food Items - Simplified -->
+  <circle cx="13" cy="15" r="1.8" fill="#84CC16" />
+  <circle cx="16" cy="15" r="2.2" fill="#EC4899" />
+  <circle cx="19" cy="15" r="1.5" fill="#FACC15" />
+  
+  <!-- Fork - Simplified -->
+  <rect x="12" y="10" width="0.8" height="3.5" rx="0.4" fill="#8B5CF6" />
+  <rect x="14" y="10" width="0.8" height="3.5" rx="0.4" fill="#8B5CF6" />
+  <rect x="16" y="10" width="0.8" height="3.5" rx="0.4" fill="#8B5CF6" />
+  <rect x="11" y="9.5" width="6.6" height="1" rx="0.5" fill="#8B5CF6" />
+</svg> 

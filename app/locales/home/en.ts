@@ -1,0 +1,83 @@
+export const homeTranslations = {
+  title: "Theme Shop",
+  subtitle: "Customize your experience",
+  currentTheme: "Current Theme",
+  applyTheme: "Apply Theme",
+  free: "Free",
+  pro: "Pro",
+  upgrade: "Upgrade to Pro",
+  downgrade: "Downgrade",
+  subscriptionStatus: {
+    basic: "Basic",
+    pro: "Pro"
+  },
+  premiumTitle: "Premium Features",
+  premiumDesc: "Get access to exclusive themes and features",
+  upgradeNow: "Upgrade Now",
+  themes: {
+    light: "Light Theme",
+    dark: "Dark Theme",
+    chocolate: "Chocolate Theme",
+    sweet: "Sweet Theme",
+    broccoli: "Broccoli Theme",
+    watermelon: "Watermelon",
+    honey: "Honey",
+    blueberry: "Blueberry"
+  },
+  apps: {
+    sectionTitle: "Apps & Tools",
+    sectionSubtitle: "Helpful tools for your nutrition journey",
+    tddCalculator: {
+      title: "TDD Calculator",
+      description: "Calculate your daily calorie needs and optimal nutrition ratios",
+      calculateButton: "Calculate My TDD",
+      applyButton: "Apply to My Settings",
+      successMessage: "Settings updated successfully!",
+      height: "Height",
+      weight: "Weight",
+      age: "Age",
+      gender: "Gender",
+      activityLevel: "Activity Level",
+      fitnessGoal: "Fitness Goal",
+      muscleGain: "Muscle Gain",
+      fatLoss: "Fat Loss",
+      both: "Balanced/Maintenance",
+      male: "Male",
+      female: "Female",
+      sedentary: "Sedentary",
+      lightlyActive: "Lightly Active",
+      moderatelyActive: "Moderately Active",
+      veryActive: "Very Active",
+      extremelyActive: "Extremely Active",
+      results: {
+        yourTdd: "Your TDD:",
+        caloriesPerDay: "calories per day",
+        macroRatios: "Recommended Macro Ratios:",
+        adjustRatios: "Adjust Ratios:",
+        protein: "Protein",
+        carbs: "Carbs",
+        fat: "Fat",
+        goalAdjustment: "Adjusted for your fitness goal",
+        baseCalories: "Base Calories:",
+        muscleGainAdjustment: "(+15% calories for muscle gain)",
+        fatLossAdjustment: "(-20% calories for fat loss)",
+        noAdjustment: "(maintenance calories)",
+        waterIntake: "Recommended Water Intake:",
+        mlPerDay: "ml per day",
+        waterIntakeExplanation: "Based on your weight (35ml × kg)"
+      }
+    },
+    petGame: {
+      title: "Nutrition Pet",
+      description: "Take care of your virtual pet by meeting your nutrition goals",
+      startGame: "Start Game",
+      continueGame: "Continue Game",
+      feedPet: "Feed Pet",
+      petStatus: "Pet Status:",
+      happiness: "Happiness",
+      health: "Health",
+      energy: "Energy",
+      level: "Level"
+    }
+  }
+}; 

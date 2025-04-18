@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="248" fill="#9333EA" />
+  
+  <!-- Inner Circle -->
+  <circle cx="256" cy="256" r="220" fill="#7E22CE" />
+  
+  <!-- Plate/Bowl -->
+  <ellipse cx="256" cy="256" rx="160" ry="70" fill="#F9FAFB" />
+  <ellipse cx="256" cy="256" rx="140" ry="50" fill="#E5E7EB" />
+  
+  <!-- Food Items -->
+  <circle cx="200" cy="236" r="30" fill="#84CC16" /> <!-- Green vegetable -->
+  <circle cx="260" cy="226" r="40" fill="#EC4899" /> <!-- Pink food -->
+  <circle cx="320" cy="246" r="25" fill="#FACC15" /> <!-- Yellow food (grain) -->
+  
+  <!-- Fork lines -->
+  <rect x="180" y="150" width="12" height="70" rx="6" fill="#8B5CF6" />
+  <rect x="220" y="150" width="12" height="70" rx="6" fill="#8B5CF6" />
+  <rect x="260" y="150" width="12" height="70" rx="6" fill="#8B5CF6" />
+  
+  <!-- Fork handle -->
+  <rect x="160" y="140" width="132" height="20" rx="10" fill="#8B5CF6" />
+  
+  <!-- Calorie counter display -->
+  <rect x="310" y="340" width="120" height="40" rx="8" fill="#F9FAFB" />
+  <text x="370" y="367" font-family="Arial, sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="#7E22CE">1200</text>
+  <text x="370" y="385" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#9333EA">calories</text>
+</svg> 

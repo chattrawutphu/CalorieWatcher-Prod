@@ -1,0 +1,2147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Safe area inset variables for iOS devices */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+/* Glassmorphism Effect for Toasts */
+.glassmorphism-toast {
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transform-style: preserve-3d;
+  perspective: 500px;
+  overflow: hidden;
+}
+
+.glassmorphism-toast::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -20;
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border-radius: inherit;
+}
+
+.glassmorphism-toast.destructive::before {
+  background: linear-gradient(
+    135deg, 
+    rgba(239, 68, 68, 0.15) 0%, 
+    rgba(239, 68, 68, 0.05) 100%
+  );
+}
+
+/* Custom Toast Swipe Animations */
+@keyframes slideRight {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* Animation classes for floating background elements */
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
+
+/* Add custom animations for the AI Food Assistant */
+@keyframes progressBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-progressBar {
+  animation: progressBar 2s ease-in-out infinite;
+}
+
+@keyframes fadeAndSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeAndSlide {
+  animation: fadeAndSlide 0.5s ease-out forwards;
+}
+
+@layer base {
+  :root {
+    --background: 0, 0%, 100%;
+    --foreground: 222.2, 84%, 4.9%;
+
+    --card: 0, 0%, 100%;
+    --card-foreground: 222.2, 84%, 4.9%;
+
+    --popover: 0, 0%, 100%;
+    --popover-foreground: 222.2, 84%, 4.9%;
+
+    --primary: 221.2, 83.2%, 53.3%;
+    --primary-foreground: 210, 40%, 98%;
+
+    --secondary: 210, 40%, 96.1%;
+    --secondary-foreground: 222.2, 47.4%, 11.2%;
+
+    --muted: 210, 40%, 96.1%;
+    --muted-foreground: 215.4, 16.3%, 46.9%;
+
+    --accent: 210, 40%, 96.1%;
+    --accent-foreground: 222.2, 47.4%, 11.2%;
+
+    --destructive: 0, 84.2%, 60.2%;
+    --destructive-foreground: 210, 40%, 98%;
+
+    --border: 214.3, 31.8%, 91.4%;
+    --input: 214.3, 31.8%, 91.4%;
+    --ring: 221.2, 83.2%, 53.3%;
+
+    --radius: 0.5rem;
+
+    --chart-1: 221.2, 83.2%, 53.3%;
+    --chart-2: 240, 60%, 60%;
+    --chart-3: 200, 70%, 50%;
+    --chart-4: 180, 70%, 50%;
+    --chart-5: 160, 70%, 50%;
+  }
+ 
+  .dark {
+    /* Updated Dark theme with blue/navy rather than purple */
+    --background: 220, 25%, 10%;
+    --foreground: 210, 20%, 98%;
+    
+    --card: 220, 25%, 13%;
+    --card-foreground: 210, 20%, 98%;
+    
+    --popover: 220, 25%, 13%;
+    --popover-foreground: 210, 20%, 98%;
+    
+    --primary: 217, 80%, 60%;
+    --primary-foreground: 210, 20%, 98%;
+    
+    --secondary: 215, 25%, 20%;
+    --secondary-foreground: 210, 20%, 98%;
+    
+    --muted: 215, 25%, 18%;
+    --muted-foreground: 210, 20%, 70%;
+    
+    --accent: 217, 80%, 25%;
+    --accent-foreground: 210, 20%, 98%;
+    
+    --destructive: 0, 70%, 45%;
+    --destructive-foreground: 210, 20%, 98%;
+    
+    --border: 215, 25%, 20%;
+    --input: 215, 25%, 20%;
+    --ring: 217, 80%, 60%;
+
+    --radius: 0.75rem;
+
+    --chart-1: 217, 80%, 60%;
+    --chart-2: 230, 70%, 55%;
+    --chart-3: 200, 70%, 60%;
+    --chart-4: 180, 65%, 55%;
+    --chart-5: 160, 65%, 50%;
+  }
+
+  .chocolate {
+    /* Dark Chocolate theme */
+    --background: 25, 30%, 10%;
+    --foreground: 28, 30%, 90%;
+    
+    --card: 25, 25%, 15%;
+    --card-foreground: 28, 30%, 90%;
+    
+    --popover: 25, 25%, 15%;
+    --popover-foreground: 28, 30%, 90%;
+    
+    --primary: 25, 60%, 30%;
+    --primary-foreground: 28, 30%, 90%;
+    
+    --secondary: 25, 30%, 20%;
+    --secondary-foreground: 28, 30%, 90%;
+    
+    --muted: 25, 20%, 20%;
+    --muted-foreground: 28, 20%, 70%;
+    
+    --accent: 25, 40%, 25%;
+    --accent-foreground: 28, 30%, 90%;
+    
+    --destructive: 0, 62.8%, 30.6%;
+    --destructive-foreground: 28, 30%, 90%;
+    
+    --border: 25, 30%, 20%;
+    --input: 25, 30%, 20%;
+    --ring: 25, 60%, 30%;
+    
+    --radius: 0.75rem;
+  }
+  
+  /* แก้ไขสีข้อความในธีม Chocolate */
+  .chocolate .text-\[hsl\(var\(--primary\)\)\] {
+    color: hsl(25, 90%, 55%) !important;
+  }
+  
+  /* แก้ไขสีข้อความใน icon ธีม Chocolate */
+  .chocolate .font-medium.text-\[hsl\(var\(--primary\)\)\],
+  .chocolate .font-semibold.text-\[hsl\(var\(--primary\)\)\],
+  .chocolate .font-bold.text-\[hsl\(var\(--primary\)\)\] {
+    color: hsl(25, 100%, 65%) !important;
+  }
+  
+  /* แก้ไขสีข้อความใน tooltip ของ recharts ในธีม Chocolate */
+  .chocolate .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: hsl(25, 15%, 15%) !important;
+    border-color: hsl(25, 30%, 25%) !important;
+  }
+  
+  .chocolate .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+  .chocolate .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+    color: hsl(28, 30%, 90%) !important;
+  }
+  
+  .chocolate .recharts-tooltip-wrapper .font-medium {
+    color: hsl(25, 100%, 75%) !important;
+  }
+
+  .sweet {
+    /* Sweet theme with pastel colors */
+    --background: 325, 100%, 98%;
+    --foreground: 320, 50%, 30%;
+    
+    --card: 0, 0%, 100%;
+    --card-foreground: 320, 50%, 30%;
+    
+    --popover: 0, 0%, 100%;
+    --popover-foreground: 320, 50%, 30%;
+    
+    --primary: 325, 95%, 85%;
+    --primary-foreground: 320, 50%, 30%;
+    
+    --secondary: 199, 95%, 90%;
+    --secondary-foreground: 199, 50%, 40%;
+    
+    --muted: 325, 70%, 90%;
+    --muted-foreground: 325, 50%, 40%;
+    
+    --accent: 199, 70%, 90%;
+    --accent-foreground: 199, 50%, 40%;
+    
+    --destructive: 0, 84.2%, 60.2%;
+    --destructive-foreground: 210, 20%, 98%;
+
+    --border: 325, 70%, 90%;
+    --input: 325, 70%, 90%;
+    --ring: 325, 95%, 85%;
+    
+    --radius: 0.75rem;
+  }
+  
+  /* แก้ไขสีใน tooltip ของ recharts ในธีม Sweet */
+  .sweet .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: hsl(325, 100%, 98%) !important;
+    border-color: hsl(325, 70%, 90%) !important;
+    box-shadow: 0px 4px 15px rgba(236, 72, 153, 0.15) !important;
+  }
+  
+  .sweet .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+  .sweet .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+    color: hsl(320, 50%, 30%) !important;
+  }
+  
+  .sweet .recharts-tooltip-wrapper .font-medium {
+    color: hsl(330, 90%, 55%) !important;
+  }
+
+  .broccoli {
+    /* Broccoli theme with dark green colors */
+    --background: 120, 40%, 98%;
+    --foreground: 125, 40%, 15%;
+    
+    --card: 0, 0%, 100%;
+    --card-foreground: 125, 40%, 15%;
+    
+    --popover: 0, 0%, 100%;
+    --popover-foreground: 125, 40%, 15%;
+    
+    --primary: 120, 60%, 25%;
+    --primary-foreground: 120, 40%, 98%;
+    
+    --secondary: 120, 40%, 92%;
+    --secondary-foreground: 120, 60%, 25%;
+    
+    --muted: 120, 30%, 92%;
+    --muted-foreground: 120, 30%, 35%;
+    
+    --accent: 120, 40%, 92%;
+    --accent-foreground: 120, 60%, 25%;
+    
+    --destructive: 0, 84.2%, 60.2%;
+    --destructive-foreground: 120, 40%, 98%;
+
+    --border: 120, 30%, 85%;
+    --input: 120, 30%, 85%;
+    --ring: 120, 60%, 25%;
+    
+    --radius: 0.75rem;
+  }
+  
+  /* แก้ไขสีใน tooltip ของ recharts ในธีม Broccoli */
+  .broccoli .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: hsl(120, 40%, 98%) !important;
+    border-color: hsl(120, 30%, 85%) !important;
+    box-shadow: 0px 4px 15px rgba(34, 197, 94, 0.15) !important;
+  }
+  
+  .broccoli .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+  .broccoli .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+    color: hsl(125, 40%, 15%) !important;
+  }
+  
+  .broccoli .recharts-tooltip-wrapper .font-medium {
+    color: hsl(120, 60%, 25%) !important;
+  }
+
+  /* แก้ไขสีใน tooltip ของ recharts ในธีม Light (default) */
+  .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: white !important;
+    border-color: hsl(240, 5.9%, 90%) !important;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+  .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+    color: hsl(240, 10%, 3.9%) !important;
+  }
+  
+  .recharts-tooltip-wrapper .font-medium {
+    color: hsl(271, 91%, 55%) !important;
+  }
+
+  .blueberry {
+    /* Blueberry theme with pastel pink, purple and blue colors */
+    --background: 330, 100%, 98%;
+    --foreground: 270, 50%, 50%;
+    
+    --card: 0, 0%, 100%;
+    --card-foreground: 270, 50%, 50%;
+    
+    --popover: 0, 0%, 100%;
+    --popover-foreground: 270, 50%, 50%;
+    
+    --primary: 280, 90%, 85%;
+    --primary-foreground: 270, 50%, 45%;
+    
+    --secondary: 270, 90%, 90%;
+    --secondary-foreground: 270, 60%, 40%;
+    
+    --muted: 280, 70%, 92%;
+    --muted-foreground: 270, 40%, 60%;
+    
+    --accent: 200, 90%, 90%;
+    --accent-foreground: 200, 60%, 40%;
+    
+    --destructive: 0, 84.2%, 60.2%;
+    --destructive-foreground: 210, 20%, 98%;
+
+    --border: 280, 70%, 90%;
+    --input: 280, 70%, 90%;
+    --ring: 280, 90%, 85%;
+    
+    --radius: 0.75rem;
+    
+    --chart-1: 280, 90%, 75%;
+    --chart-2: 250, 80%, 75%;
+    --chart-3: 200, 80%, 75%;
+    --chart-4: 300, 80%, 75%;
+    --chart-5: 320, 80%, 75%;
+  }
+  
+  /* Fix text color in Blueberry theme */
+  .blueberry .text-\[hsl\(var\(--primary\)\)\] {
+    color: hsl(280, 100%, 75%) !important;
+  }
+  
+  /* Fix text color in icons for Blueberry theme */
+  .blueberry .font-medium.text-\[hsl\(var\(--primary\)\)\],
+  .blueberry .font-semibold.text-\[hsl\(var\(--primary\)\)\],
+  .blueberry .font-bold.text-\[hsl\(var\(--primary\)\)\] {
+    color: hsl(270, 100%, 70%) !important;
+  }
+  
+  /* Fix tooltip styles for Blueberry theme */
+  .blueberry .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: hsl(280, 100%, 98%) !important;
+    border-color: hsl(280, 70%, 90%) !important;
+    box-shadow: 0px 4px 15px rgba(180, 153, 255, 0.25) !important;
+  }
+  
+  .blueberry .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+  .blueberry .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+    color: hsl(270, 50%, 50%) !important;
+  }
+  
+  .blueberry .recharts-tooltip-wrapper .font-medium {
+    color: hsl(270, 90%, 65%) !important;
+  }
+  
+  /* Animations for Blueberry theme */
+  @keyframes float-blueberry {
+    0% {
+      transform: translateY(0) rotate(0);
+    }
+    50% {
+      transform: translateY(-10px) rotate(5deg);
+    }
+    100% {
+      transform: translateY(0) rotate(0);
+    }
+  }
+  
+  /* Background gradient for Blueberry theme */
+  .blueberry .bg-gradient-to-br {
+    background: linear-gradient(135deg, hsla(280, 100%, 92%, 0.5), hsla(250, 100%, 92%, 0.5), hsla(200, 100%, 92%, 0.5)) !important;
+  }
+  
+  /* Animated blobs for Blueberry theme */
+  .blueberry .animate-blob {
+    animation: blob 7s infinite, float-blueberry 4s ease-in-out infinite !important;
+    background: linear-gradient(135deg, hsla(280, 100%, 89%, 0.7), hsla(250, 100%, 89%, 0.4)) !important;
+  }
+
+  .blueberry .animate-blob:nth-child(2) {
+    animation-delay: 1s !important;
+    background: linear-gradient(135deg, hsla(250, 100%, 89%, 0.7), hsla(280, 100%, 89%, 0.4)) !important;
+  }
+  
+  .blueberry .animate-blob:nth-child(3) {
+    animation-delay: 2s !important;
+    background: linear-gradient(135deg, hsla(200, 100%, 89%, 0.7), hsla(250, 100%, 89%, 0.4)) !important;
+  }
+  
+  /* Decorative elements for Blueberry theme */
+  .blueberry::before {
+    content: "🍇";
+    position: fixed;
+    top: 15vh;
+    left: 10vw;
+    font-size: 5rem;
+    opacity: 0.25;
+    z-index: -1;
+    animation: float-blueberry 10s ease-in-out infinite;
+    transform-origin: center;
+  }
+  
+  .blueberry::after {
+    content: "🫐";
+    position: fixed;
+    bottom: 20vh;
+    right: 10vw;
+    font-size: 4rem;
+    opacity: 0.2;
+    z-index: -1;
+    animation: float-blueberry 7s ease-in-out 1s infinite;
+    transform-origin: center;
+  }
+  
+  .blueberry .blueberry-emoji-1 {
+    content: "🍇";
+    position: fixed;
+    top: 50vh;
+    right: 20vw;
+    font-size: 3rem;
+    opacity: 0.15;
+    z-index: -1;
+    animation: float-blueberry 8s ease-in-out 2s infinite;
+  }
+  
+  .blueberry .blueberry-emoji-2 {
+    content: "🫐";
+    position: fixed;
+    bottom: 40vh;
+    left: 25vw;
+    font-size: 2.5rem;
+    opacity: 0.15;
+    z-index: -1;
+    animation: float-blueberry 6s ease-in-out 3s infinite;
+  }
+  
+  /* Add more decorative elements for Blueberry theme */
+  .blueberry .blueberry-emoji-3 {
+    position: fixed;
+    top: 45%;
+    left: 20%;
+    font-size: 2.2rem;
+    opacity: 0.4;
+    z-index: -1;
+    animation: float-blueberry 5s ease-in-out infinite;
+    animation-delay: 1.5s;
+    content: "🍇";
+    pointer-events: none;
+  }
+  
+  .blueberry .blueberry-emoji-4 {
+    position: fixed;
+    bottom: 40%;
+    right: 15%;
+    font-size: 2rem;
+    opacity: 0.4;
+    z-index: -1;
+    animation: float-blueberry 8s ease-in-out infinite;
+    animation-delay: 2s;
+    content: "🫐";
+    pointer-events: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animation for floating blobs in the background */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+/* Custom animation for floating chocolate emojis */
+@keyframes float-chocolate {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, -30px) rotate(10deg);
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(-10deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-chocolate {
+  animation: float-chocolate 15s infinite;
+}
+
+.animation-delay-6000 {
+  animation-delay: 6s;
+}
+
+/* Theme-specific background gradients */
+.dark .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, hsl(240, 10%, 4%), hsl(240, 10%, 8%));
+}
+
+.chocolate .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, hsl(25, 30%, 10%), hsl(25, 25%, 15%));
+}
+
+/* Theme-specific blob colors */
+.dark .animate-blob {
+  background-color: hsla(271, 91%, 65%, 0.4);
+}
+
+.chocolate .animate-blob {
+  background-color: hsla(25, 60%, 30%, 0.4);
+}
+
+/* Chocolate theme background emojis */
+.chocolate::before {
+  content: "🍫";
+  position: fixed;
+  top: 15vh;
+  left: 10vw;
+  font-size: 5rem;
+  opacity: 0.25;
+  z-index: -1;
+  animation: float-chocolate 10s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.chocolate::after {
+  content: "🍪";
+  position: fixed;
+  bottom: 20vh;
+  right: 10vw;
+  font-size: 4rem;
+  opacity: 0.2;
+  z-index: -1;
+  animation: float-chocolate 7s ease-in-out 1s infinite;
+  transform-origin: center;
+}
+
+.chocolate .chocolate-emoji-1 {
+  content: "🍩";
+  position: fixed;
+  top: 50vh;
+  right: 20vw;
+  font-size: 3rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-chocolate 8s ease-in-out 2s infinite;
+}
+
+.chocolate .chocolate-emoji-2 {
+  content: "🎂";
+  position: fixed;
+  bottom: 40vh;
+  left: 25vw;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-chocolate 6s ease-in-out 3s infinite;
+}
+
+/* Small non-blurred chocolate emojis */
+.chocolate .chocolate-small-1 {
+  position: fixed;
+  top: 25%;
+  right: 20%;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 1s;
+}
+
+.chocolate .chocolate-small-2 {
+  position: fixed;
+  bottom: 45%;
+  left: 15%;
+  font-size: 2rem;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 3s;
+}
+
+.chocolate .chocolate-small-3 {
+  position: fixed;
+  top: 60%;
+  right: 40%;
+  font-size: 1.8rem;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 5s;
+}
+
+.chocolate .chocolate-small-4 {
+  position: fixed;
+  bottom: 15%;
+  left: 35%;
+  font-size: 1.5rem;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 7s;
+}
+
+.chocolate .chocolate-small-5 {
+  position: fixed;
+  top: 35%;
+  left: 25%;
+  font-size: 3rem;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 2s;
+}
+
+.chocolate .chocolate-small-6 {
+  position: fixed;
+  bottom: 30%;
+  right: 30%;
+  font-size: 2.2rem;
+  opacity: 0.11;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 4s;
+}
+
+.chocolate .chocolate-small-7 {
+  position: fixed;
+  top: 70%;
+  left: 45%;
+  font-size: 2.8rem;
+  opacity: 0.13;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 6s;
+}
+
+.chocolate .chocolate-small-8 {
+  position: fixed;
+  bottom: 60%;
+  right: 15%;
+  font-size: 1.7rem;
+  opacity: 0.09;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-chocolate 12s infinite;
+  animation-delay: 8s;
+}
+
+/* Sweet theme background emojis */
+.sweet::before {
+  content: "🍰";
+  position: fixed;
+  top: 15vh;
+  left: 10vw;
+  font-size: 5rem;
+  opacity: 0.25;
+  z-index: -1;
+  animation: float-sweet 10s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.sweet::after {
+  content: "🧁";
+  position: fixed;
+  bottom: 20vh;
+  right: 10vw;
+  font-size: 4rem;
+  opacity: 0.2;
+  z-index: -1;
+  animation: float-sweet 7s ease-in-out 1s infinite;
+  transform-origin: center;
+}
+
+.sweet .sweet-emoji-1 {
+  content: "🍦";
+  position: fixed;
+  top: 50vh;
+  right: 20vw;
+  font-size: 3rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-sweet 8s ease-in-out 2s infinite;
+}
+
+.sweet .sweet-emoji-2 {
+  content: "🍭";
+  position: fixed;
+  bottom: 40vh;
+  left: 25vw;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-sweet 6s ease-in-out 3s infinite;
+}
+
+/* Small non-blurred sweet emojis */
+.sweet .sweet-small-1 {
+  position: fixed;
+  top: 25%;
+  right: 20%;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 1s;
+}
+
+.sweet .sweet-small-2 {
+  position: fixed;
+  bottom: 45%;
+  left: 15%;
+  font-size: 2rem;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 3s;
+}
+
+.sweet .sweet-small-3 {
+  position: fixed;
+  top: 60%;
+  right: 40%;
+  font-size: 1.8rem;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 5s;
+}
+
+.sweet .sweet-small-4 {
+  position: fixed;
+  bottom: 15%;
+  left: 35%;
+  font-size: 1.5rem;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 7s;
+}
+
+.sweet .sweet-small-5 {
+  position: fixed;
+  top: 35%;
+  left: 25%;
+  font-size: 3rem;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 2s;
+}
+
+.sweet .sweet-small-6 {
+  position: fixed;
+  bottom: 30%;
+  right: 30%;
+  font-size: 2.2rem;
+  opacity: 0.11;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 4s;
+}
+
+.sweet .sweet-small-7 {
+  position: fixed;
+  top: 70%;
+  left: 45%;
+  font-size: 2.8rem;
+  opacity: 0.13;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 6s;
+}
+
+.sweet .sweet-small-8 {
+  position: fixed;
+  bottom: 60%;
+  right: 15%;
+  font-size: 1.7rem;
+  opacity: 0.09;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-sweet 12s infinite;
+  animation-delay: 8s;
+}
+
+/* Custom animation for floating sweet emojis */
+@keyframes float-sweet {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(20px, -20px) rotate(5deg) scale(1.05);
+  }
+  66% {
+    transform: translate(-15px, 15px) rotate(-5deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+}
+
+/* Theme-specific blob colors */
+.sweet .animate-blob {
+  background-color: hsla(325, 95%, 85%, 0.4);
+  mix-blend-mode: multiply;
+}
+
+.sweet .animate-blob:nth-child(2) {
+  background-color: hsla(199, 95%, 85%, 0.4);
+  mix-blend-mode: multiply;
+}
+
+.sweet .animate-blob:nth-child(3) {
+  background-color: hsla(325, 95%, 85%, 0.4);
+  mix-blend-mode: multiply;
+}
+
+/* Theme-specific background gradients */
+.sweet .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, hsl(325, 100%, 98%), hsl(325, 100%, 96%));
+}
+
+/* Custom animation for floating broccoli emojis */
+@keyframes float-broccoli {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(20px, -20px) rotate(5deg) scale(1.05);
+  }
+  66% {
+    transform: translate(-15px, 15px) rotate(-5deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+}
+
+/* Broccoli theme background emojis */
+.broccoli::before {
+  content: "🥦";
+  position: fixed;
+  top: 15vh;
+  left: 10vw;
+  font-size: 5rem;
+  opacity: 0.25;
+  z-index: -1;
+  animation: float-broccoli 10s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.broccoli::after {
+  content: "🥬";
+  position: fixed;
+  bottom: 20vh;
+  right: 10vw;
+  font-size: 4rem;
+  opacity: 0.2;
+  z-index: -1;
+  animation: float-broccoli 7s ease-in-out 1s infinite;
+  transform-origin: center;
+}
+
+.broccoli .broccoli-emoji-1 {
+  content: "🥒";
+  position: fixed;
+  top: 50vh;
+  right: 20vw;
+  font-size: 3rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-broccoli 8s ease-in-out 2s infinite;
+}
+
+.broccoli .broccoli-emoji-2 {
+  content: "🥕";
+  position: fixed;
+  bottom: 40vh;
+  left: 25vw;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-broccoli 6s ease-in-out 3s infinite;
+}
+
+/* Small non-blurred broccoli emojis */
+.broccoli .broccoli-small-1 {
+  position: fixed;
+  top: 25%;
+  right: 20%;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-broccoli 12s infinite;
+  animation-delay: 1s;
+  content: "🍅";
+}
+
+.broccoli .broccoli-small-2 {
+  position: fixed;
+  bottom: 45%;
+  left: 15%;
+  font-size: 2rem;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-broccoli 12s infinite;
+  animation-delay: 3s;
+  content: "🧅";
+}
+
+.broccoli .broccoli-small-3 {
+  position: fixed;
+  top: 60%;
+  right: 40%;
+  font-size: 1.8rem;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-broccoli 12s infinite;
+  animation-delay: 5s;
+  content: "🌽";
+}
+
+.broccoli .broccoli-small-4 {
+  position: fixed;
+  bottom: 15%;
+  left: 35%;
+  font-size: 1.5rem;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-broccoli 12s infinite;
+  animation-delay: 7s;
+  content: "🥗";
+}
+
+.broccoli .broccoli-small-5 {
+  position: fixed;
+  top: 35%;
+  left: 25%;
+  font-size: 2rem;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-broccoli 12s infinite;
+  animation-delay: 2s;
+  content: "🫑";
+}
+
+.broccoli .broccoli-small-6 {
+  position: fixed;
+  bottom: 60%;
+  right: 30%;
+  font-size: 1.5rem;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+  animation: float-broccoli 12s infinite;
+  animation-delay: 6s;
+  content: "🧄";
+}
+
+/* Theme-specific background gradients */
+.broccoli .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, hsl(120, 40%, 98%), hsl(120, 40%, 92%));
+}
+
+/* Theme-specific blob colors */
+.broccoli .animate-blob {
+  background-color: hsla(120, 60%, 25%, 0.4);
+  mix-blend-mode: multiply;
+}
+
+.broccoli .animate-blob:nth-child(2) {
+  background-color: hsla(120, 40%, 35%, 0.4);
+  mix-blend-mode: multiply;
+}
+
+.broccoli .animate-blob:nth-child(3) {
+  background-color: hsla(120, 50%, 30%, 0.4);
+  mix-blend-mode: multiply;
+}
+
+/* Add shimmer effect for loading states */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsla(var(--muted), 0) 0%,
+    hsla(var(--muted), 0.2) 50%,
+    hsla(var(--muted), 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Slow transition for hover effects */
+.transition-all-slow {
+  transition: all 0.5s ease-in-out;
+}
+
+/* แก้ไขสีใน tooltip ของ recharts ในธีม Dark */
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: hsl(270, 15%, 13%) !important;
+  border-color: hsl(270, 15%, 20%) !important;
+  box-shadow: 0px 4px 15px rgba(150, 100, 255, 0.2) !important;
+}
+
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  color: hsl(260, 20%, 98%) !important;
+}
+
+.dark .recharts-tooltip-wrapper .font-medium {
+  color: hsl(260, 90%, 75%) !important;
+}
+
+.watermelon {
+  /* Watermelon theme with red and green tones slightly dark */
+  --background: 150, 10%, 12%;
+  --foreground: 0, 10%, 95%;
+  
+  --card: 150, 8%, 15%;
+  --card-foreground: 0, 10%, 95%;
+  
+  --popover: 150, 8%, 15%;
+  --popover-foreground: 0, 10%, 95%;
+  
+  --primary: 350, 80%, 45%;
+  --primary-foreground: 0, 10%, 95%;
+  
+  --secondary: 140, 60%, 20%;
+  --secondary-foreground: 0, 10%, 95%;
+  
+  --muted: 150, 10%, 20%;
+  --muted-foreground: 0, 10%, 75%;
+  
+  --accent: 140, 60%, 20%;
+  --accent-foreground: 0, 10%, 95%;
+  
+  --destructive: 0, 70%, 35%;
+  --destructive-foreground: 0, 10%, 95%;
+
+  --border: 150, 10%, 20%;
+  --input: 150, 10%, 20%;
+  --ring: 350, 80%, 45%;
+  
+  --radius: 0.75rem;
+}
+
+/* แก้ไขสีข้อความในธีม Watermelon */
+.watermelon .text-\[hsl\(var\(--primary\)\)\] {
+  color: hsl(350, 90%, 55%) !important;
+}
+
+/* แก้ไขสีข้อความใน icon ธีม Watermelon */
+.watermelon .font-medium.text-\[hsl\(var\(--primary\)\)\],
+.watermelon .font-semibold.text-\[hsl\(var\(--primary\)\)\],
+.watermelon .font-bold.text-\[hsl\(var\(--primary\)\)\] {
+  color: hsl(350, 100%, 60%) !important;
+}
+
+/* แก้ไขสีข้อความใน tooltip ของ recharts ในธีม Watermelon */
+.watermelon .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: hsl(150, 10%, 15%) !important;
+  border-color: hsl(350, 70%, 30%) !important;
+  box-shadow: 0px 4px 15px rgba(255, 70, 70, 0.2) !important;
+}
+
+.watermelon .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+.watermelon .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  color: hsl(0, 10%, 95%) !important;
+}
+
+.watermelon .recharts-tooltip-wrapper .font-medium {
+  color: hsl(350, 100%, 65%) !important;
+}
+
+/* เพิ่มเอฟเฟกต์สำหรับธีม Watermelon */
+@keyframes float-watermelon {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.watermelon::before {
+  content: "🍉";
+  position: fixed;
+  top: 15vh;
+  left: 10vw;
+  font-size: 5rem;
+  opacity: 0.25;
+  z-index: -1;
+  animation: float-watermelon 10s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.watermelon::after {
+  content: "🍓";
+  position: fixed;
+  bottom: 20vh;
+  right: 10vw;
+  font-size: 4rem;
+  opacity: 0.2;
+  z-index: -1;
+  animation: float-watermelon 7s ease-in-out 1s infinite;
+  transform-origin: center;
+}
+
+.watermelon .watermelon-emoji-1 {
+  content: "🍈";
+  position: fixed;
+  top: 50vh;
+  right: 20vw;
+  font-size: 3rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-watermelon 8s ease-in-out 2s infinite;
+}
+
+.watermelon .watermelon-emoji-2 {
+  content: "🥝";
+  position: fixed;
+  bottom: 40vh;
+  left: 25vw;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-watermelon 6s ease-in-out 3s infinite;
+}
+
+.watermelon .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, hsl(350, 80%, 25%), hsl(140, 60%, 20%)) !important;
+}
+
+.watermelon .animate-blob {
+  background: radial-gradient(circle, rgba(255, 70, 70, 0.8) 0%, rgba(255, 0, 0, 0) 70%);
+  animation: blob 10s infinite ease;
+}
+
+.watermelon .animate-blob:nth-child(2) {
+  background: radial-gradient(circle, rgba(50, 170, 70, 0.8) 0%, rgba(0, 255, 0, 0) 70%);
+  animation-delay: 2s;
+}
+
+.watermelon .animate-blob:nth-child(3) {
+  background: radial-gradient(circle, rgba(255, 70, 70, 0.8) 0%, rgba(255, 0, 0, 0) 70%);
+  animation-delay: 4s;
+}
+
+.honey {
+  /* Honey theme with pastel yellow and orange tones */
+  --background: 48, 100%, 95%;
+  --foreground: 35, 90%, 30%;
+  
+  --card: 48, 100%, 97%;
+  --card-foreground: 35, 90%, 30%;
+  
+  --popover: 48, 100%, 97%;
+  --popover-foreground: 35, 90%, 30%;
+  
+  --primary: 28, 90%, 55%;
+  --primary-foreground: 48, 100%, 97%;
+  
+  --secondary: 42, 90%, 85%;
+  --secondary-foreground: 35, 100%, 40%;
+  
+  --muted: 42, 70%, 90%;
+  --muted-foreground: 35, 60%, 45%;
+  
+  --accent: 42, 90%, 85%;
+  --accent-foreground: 35, 100%, 40%;
+  
+  --destructive: 0, 84.2%, 60.2%;
+  --destructive-foreground: 48, 100%, 97%;
+
+  --border: 42, 70%, 85%;
+  --input: 42, 70%, 85%;
+  --ring: 28, 90%, 55%;
+  
+  --radius: 0.75rem;
+}
+
+/* แก้ไขสีข้อความในธีม Honey */
+.honey .text-\[hsl\(var\(--primary\)\)\] {
+  color: hsl(28, 95%, 55%) !important;
+}
+
+/* แก้ไขสีข้อความใน icon ธีม Honey */
+.honey .font-medium.text-\[hsl\(var\(--primary\)\)\],
+.honey .font-semibold.text-\[hsl\(var\(--primary\)\)\],
+.honey .font-bold.text-\[hsl\(var\(--primary\)\)\] {
+  color: hsl(28, 100%, 60%) !important;
+}
+
+/* แก้ไขสีข้อความใน tooltip ของ recharts ในธีม Honey */
+.honey .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: hsl(48, 100%, 97%) !important;
+  border-color: hsl(42, 90%, 75%) !important;
+  box-shadow: 0px 4px 15px rgba(255, 180, 0, 0.2) !important;
+}
+
+.honey .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+.honey .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  color: hsl(35, 90%, 30%) !important;
+}
+
+.honey .recharts-tooltip-wrapper .font-medium {
+  color: hsl(28, 100%, 45%) !important;
+}
+
+/* เพิ่มเอฟเฟกต์สำหรับธีม Honey */
+@keyframes float-honey {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(-2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes dripping-honey {
+  0% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(15px) scaleY(1.1);
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+.honey::before {
+  content: "🍯";
+  position: fixed;
+  top: 15vh;
+  left: 10vw;
+  font-size: 5rem;
+  opacity: 0.25;
+  z-index: -1;
+  animation: float-honey 10s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.honey::after {
+  content: "🐝";
+  position: fixed;
+  bottom: 20vh;
+  right: 10vw;
+  font-size: 4rem;
+  opacity: 0.2;
+  z-index: -1;
+  animation: float-honey 7s ease-in-out 1s infinite;
+  transform-origin: center;
+}
+
+.honey .honey-emoji-1 {
+  content: "🍯";
+  position: fixed;
+  top: 50vh;
+  right: 20vw;
+  font-size: 3rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: dripping-honey 8s ease-in-out 2s infinite;
+}
+
+.honey .honey-emoji-2 {
+  content: "🐝";
+  position: fixed;
+  bottom: 40vh;
+  left: 25vw;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-honey 6s ease-in-out 3s infinite;
+}
+
+.honey .honey-small-1 {
+  content: "";
+  position: fixed;
+  top: 25vh;
+  right: 30vw;
+  width: 15px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, rgba(255, 196, 12, 0.6), rgba(255, 153, 0, 0));
+  opacity: 0.3;
+  z-index: -1;
+  animation: dripping-honey 10s ease-in-out 1s infinite;
+}
+
+.honey .honey-small-2 {
+  content: "";
+  position: fixed;
+  top: 40vh;
+  left: 15vw;
+  width: 20px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, rgba(255, 196, 12, 0.6), rgba(255, 153, 0, 0));
+  opacity: 0.3;
+  z-index: -1;
+  animation: dripping-honey 12s ease-in-out 2s infinite;
+}
+
+.honey .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, hsl(48, 100%, 90%), hsl(30, 100%, 70%)) !important;
+}
+
+.honey .animate-blob {
+  background: radial-gradient(circle, rgba(255, 180, 0, 0.7) 0%, rgba(255, 196, 12, 0) 70%);
+  animation: blob 10s infinite ease;
+}
+
+.honey .animate-blob:nth-child(2) {
+  background: radial-gradient(circle, rgba(255, 153, 0, 0.7) 0%, rgba(255, 165, 0, 0) 70%);
+  animation-delay: 2s;
+}
+
+.honey .animate-blob:nth-child(3) {
+  background: radial-gradient(circle, rgba(255, 200, 50, 0.7) 0%, rgba(255, 220, 100, 0) 70%);
+  animation-delay: 4s;
+}
+
+/* Safe area utilities */
+.pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+.pr-safe {
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.pl-safe {
+  padding-left: max(1rem, env(safe-area-inset-left));
+}
+
+.mt-safe {
+  margin-top: env(safe-area-inset-top);
+}
+
+.mr-safe {
+  margin-right: env(safe-area-inset-right);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+.ml-safe {
+  margin-left: env(safe-area-inset-left);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Light theme animations and decorations - Update to pink theme */
+@keyframes float-pink {
+  0% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes heart-beat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  10%, 30% {
+    transform: scale(1.15);
+  }
+  20%, 40% {
+    transform: scale(0.9);
+  }
+  50%, 70% {
+    transform: scale(1.1);
+  }
+  60%, 80% {
+    transform: scale(0.95);
+  }
+}
+
+/* Light theme (Pink) specific classes and decorative elements */
+.light .bg-gradient-to-br {
+  background: linear-gradient(135deg, hsla(340, 100%, 97%, 0.8), hsla(330, 100%, 96%, 0.8), hsla(350, 100%, 96%, 0.8)) !important;
+}
+
+/* Animated blobs for Light theme (Pink) */
+.light .animate-blob {
+  animation: blob 7s infinite, float-pink 4s ease-in-out infinite !important;
+  background: radial-gradient(circle at 50% 50%, hsla(335, 100%, 90%, 0.5), hsla(340, 100%, 85%, 0.3), transparent 70%) !important;
+  mix-blend-mode: soft-light;
+  border-radius: 50%;
+}
+
+.light .animate-blob:nth-child(2) {
+  animation-delay: 1s !important;
+  background: radial-gradient(circle at 50% 50%, hsla(355, 100%, 90%, 0.5), hsla(345, 100%, 85%, 0.3), transparent 70%) !important;
+  mix-blend-mode: soft-light;
+}
+
+.light .animate-blob:nth-child(3) {
+  animation-delay: 2s !important;
+  background: radial-gradient(circle at 50% 50%, hsla(310, 100%, 90%, 0.5), hsla(320, 100%, 85%, 0.3), transparent 70%) !important;
+  mix-blend-mode: soft-light;
+}
+
+/* Decorative elements for Light theme (Pink) */
+.light::before {
+  content: "";
+  position: fixed;
+  top: -100px;
+  right: -50px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, hsla(335, 100%, 90%, 0.5), hsla(335, 100%, 90%, 0.2), transparent 70%);
+  z-index: -1;
+  animation: float-pink 12s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+.light::after {
+  content: "";
+  position: fixed;
+  bottom: -100px;
+  left: -50px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, hsla(355, 100%, 90%, 0.5), hsla(355, 100%, 90%, 0.2), transparent 70%);
+  z-index: -1;
+  animation: float-pink 15s ease-in-out infinite;
+  animation-delay: 1s;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+/* Emoji decorations for Light theme (Pink) */
+.light .light-emoji-1 {
+  position: fixed;
+  top: 15%;
+  right: 10%;
+  font-size: 2.5rem;
+  opacity: 0.6;
+  z-index: -1;
+  animation: float-pink 6s ease-in-out infinite;
+  content: "🌸";
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgba(255, 150, 200, 0.7));
+}
+
+.light .light-emoji-2 {
+  position: fixed;
+  bottom: 15%;
+  left: 10%;
+  font-size: 2.2rem;
+  opacity: 0.6;
+  z-index: -1;
+  animation: heart-beat 3s ease-in-out infinite;
+  content: "💖";
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(255, 100, 150, 0.7));
+}
+
+/* Add more decorative elements for Light theme (Pink) */
+.light .light-emoji-3 {
+  position: fixed;
+  top: 45%;
+  left: 20%;
+  font-size: 2rem;
+  opacity: 0.5;
+  z-index: -1;
+  animation: float-pink 5s ease-in-out infinite;
+  animation-delay: 1.5s;
+  content: "🍰";
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(255, 180, 220, 0.6));
+}
+
+.light .light-emoji-4 {
+  position: fixed;
+  bottom: 40%;
+  right: 15%;
+  font-size: 1.8rem;
+  opacity: 0.5;
+  z-index: -1;
+  animation: float-pink 8s ease-in-out infinite;
+  animation-delay: 2s;
+  content: "🍧";
+  pointer-events: none;
+  filter: drop-shadow(0 0 5px rgba(255, 200, 230, 0.6));
+}
+
+/* Add more cute elements */
+.light .light-sparkle-1 {
+  position: fixed;
+  top: 30%;
+  right: 30%;
+  font-size: 1rem;
+  opacity: 0.6;
+  z-index: -1;
+  animation: sparkle 3s ease-in-out infinite;
+  content: "✨";
+  pointer-events: none;
+}
+
+.light .light-sparkle-2 {
+  position: fixed;
+  bottom: 25%;
+  left: 35%;
+  font-size: 1.2rem;
+  opacity: 0.6;
+  z-index: -1;
+  animation: sparkle 2.5s ease-in-out infinite;
+  animation-delay: 0.5s;
+  content: "✨";
+  pointer-events: none;
+}
+
+.light .light-sparkle-3 {
+  position: fixed;
+  top: 60%;
+  left: 15%;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  z-index: -1;
+  animation: sparkle 4s ease-in-out infinite;
+  animation-delay: 1s;
+  content: "✨";
+  pointer-events: none;
+}
+
+.light .light-sparkle-4 {
+  position: fixed;
+  bottom: 55%;
+  right: 25%;
+  font-size: 1rem;
+  opacity: 0.6;
+  z-index: -1;
+  animation: sparkle 3.5s ease-in-out infinite;
+  animation-delay: 1.5s;
+  content: "✨";
+  pointer-events: none;
+}
+
+/* Tooltip styles for Light (Pink) theme */
+.light .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: hsl(340, 100%, 99%) !important;
+  border-color: hsl(340, 75%, 90%) !important;
+  box-shadow: 0px 4px 15px rgba(255, 100, 150, 0.2) !important;
+}
+
+.light .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+.light .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  color: hsl(320, 50%, 35%) !important;
+}
+
+.light .recharts-tooltip-wrapper .font-medium {
+  color: hsl(335, 95%, 60%) !important;
+}
+
+/* Improved touch interaction styles */
+/* ปรับปรุงการตอบสนองต่อการสัมผัส */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ปรับปรุงพื้นที่การสัมผัสและการตอบสนองสำหรับปุ่มทั่วไป */
+button, 
+a, 
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* เพิ่มการตอบสนองขณะกดสำหรับปุ่มทั่วไป */
+button:active,
+a:active,
+[role="button"]:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* ใช้ will-change เพื่อเพิ่มประสิทธิภาพการเรนเดอร์การเปลี่ยนแปลง */
+.animate-progressBar,
+.animate-fadeAndSlide,
+.animate-blob,
+.motion-safe\:transition-transform,
+.page-transition {
+  will-change: transform, opacity;
+}
+
+/* ทำให้แน่ใจว่าการพิมพ์บนมือถือมีประสิทธิภาพ */
+input, textarea {
+  touch-action: pan-x pan-y;
+}
+
+/* ปรับปรุงการเลื่อนให้เรียบลื่น */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ปรับแต่ง iOS overscroll behavior */
+body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ปรับปรุงการโต้ตอบกับหน้าจอสัมผัส */
+.user-select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ทำให้การเปลี่ยนแปลงสีสันมีความลื่นไหล */
+html.transition,
+html.transition *,
+html.transition *:before,
+html.transition *:after {
+  transition: all 200ms !important;
+  transition-delay: 0 !important;
+}
+
+/* สร้างลูกเล่นการตอบสนองขณะกดปุ่มให้เป็นธรรมชาติมากขึ้น */
+.clickable {
+  transform: translateZ(0);
+  transition: transform 0.15s ease-out;
+}
+
+.clickable:active {
+  transform: scale(0.95) translateZ(0);
+}
+
+/* ช่วยให้การสัมผัสที่แม่นยำขึ้นโดยเพิ่มพื้นที่กดโดยไม่ต้องเปลี่ยนขนาดที่มองเห็น */
+.touch-target::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  z-index: -1;
+}
+
+/* Purple theme decorative elements for dark mode */
+@keyframes float-purple {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(10px, -15px) rotate(5deg) scale(1.05);
+  }
+  66% {
+    transform: translate(-10px, 8px) rotate(-3deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+}
+
+.dark::before {
+  content: "";
+  position: fixed;
+  top: -20vh;
+  left: -10vw;
+  width: 45vw;
+  height: 45vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80, 130, 220, 0.15), rgba(80, 130, 220, 0) 70%);
+  z-index: -1;
+  animation: float-purple 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dark::after {
+  content: "";
+  position: fixed;
+  bottom: -20vh;
+  right: -10vw;
+  width: 40vw;
+  height: 40vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 180, 250, 0.1), rgba(120, 180, 250, 0) 70%);
+  z-index: -1;
+  animation: float-purple 18s ease-in-out 2s infinite;
+  pointer-events: none;
+}
+
+.dark .dark-glow-1 {
+  position: fixed;
+  top: 30vh;
+  right: 20vw;
+  width: 25vw;
+  height: 25vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100, 150, 250, 0.08), rgba(100, 150, 250, 0) 70%);
+  z-index: -1;
+  animation: float-purple 15s ease-in-out 1s infinite;
+  pointer-events: none;
+}
+
+.dark .dark-glow-2 {
+  position: fixed;
+  bottom: 35vh;
+  left: 15vw;
+  width: 30vw;
+  height: 30vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(90, 150, 235, 0.07), rgba(90, 150, 235, 0) 70%);
+  z-index: -1;
+  animation: float-purple 17s ease-in-out 3s infinite;
+  pointer-events: none;
+}
+
+/* Stars and sparkles for dark theme */
+.dark .dark-star-1 {
+  position: fixed;
+  top: 15vh;
+  right: 25vw;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 10px 2px rgba(150, 200, 255, 0.8);
+  z-index: -1;
+  animation: twinkle 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dark .dark-star-2 {
+  position: fixed;
+  top: 35vh;
+  left: 20vw;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 12px 3px rgba(120, 180, 255, 0.8);
+  z-index: -1;
+  animation: twinkle 5s ease-in-out 1s infinite;
+  pointer-events: none;
+}
+
+.dark .dark-star-3 {
+  position: fixed;
+  bottom: 25vh;
+  right: 15vw;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 8px 2px rgba(100, 160, 230, 0.8);
+  z-index: -1;
+  animation: twinkle 3s ease-in-out 0.5s infinite;
+  pointer-events: none;
+}
+
+.dark .dark-star-4 {
+  position: fixed;
+  bottom: 40vh;
+  left: 30vw;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 12px 3px rgba(130, 200, 255, 0.8);
+  z-index: -1;
+  animation: twinkle 4.5s ease-in-out 1.5s infinite;
+  pointer-events: none;
+}
+
+.dark .bg-gradient-to-br {
+  background: linear-gradient(135deg, hsl(220, 25%, 10%), hsl(220, 30%, 7%)) !important;
+}
+
+.dark .animate-blob {
+  background: radial-gradient(circle, rgba(100, 160, 240, 0.6) 0%, rgba(100, 160, 240, 0) 70%);
+  animation: blob 10s infinite ease;
+}
+
+.dark .animate-blob:nth-child(2) {
+  background: radial-gradient(circle, rgba(120, 200, 255, 0.5) 0%, rgba(120, 200, 255, 0) 70%);
+  animation-delay: 2s;
+}
+
+.dark .animate-blob:nth-child(3) {
+  background: radial-gradient(circle, rgba(80, 140, 220, 0.5) 0%, rgba(80, 140, 220, 0) 70%);
+  animation-delay: 4s;
+}
+
+/* แก้ไขสีใน tooltip ของ recharts ในธีม Dark */
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: hsl(220, 25%, 13%) !important;
+  border-color: hsl(215, 25%, 20%) !important;
+  box-shadow: 0px 4px 15px rgba(100, 150, 255, 0.2) !important;
+}
+
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  color: hsl(210, 20%, 98%) !important;
+}
+
+.dark .recharts-tooltip-wrapper .font-medium {
+  color: hsl(217, 90%, 75%) !important;
+}
+
+/* Light theme background clouds */
+.light .light-cloud-1:before {
+  content: "☁️";
+  position: fixed;
+  top: 10vh;
+  left: 15vw;
+  font-size: 4rem;
+  opacity: 0.15;
+  z-index: -1;
+  animation: float-cloud 25s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+.light .light-cloud-2:before {
+  content: "☁️";
+  position: fixed;
+  top: 25vh;
+  right: 10vw;
+  font-size: 3.5rem;
+  opacity: 0.12;
+  z-index: -1;
+  animation: float-cloud 28s ease-in-out 2s infinite;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+.light .light-cloud-3:before {
+  content: "☁️";
+  position: fixed;
+  bottom: 30vh;
+  left: 25vw;
+  font-size: 5rem;
+  opacity: 0.1;
+  z-index: -1;
+  animation: float-cloud 30s ease-in-out 5s infinite;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+.light .light-cloud-4:before {
+  content: "☁️";
+  position: fixed;
+  bottom: 15vh;
+  right: 20vw;
+  font-size: 3rem;
+  opacity: 0.14;
+  z-index: -1;
+  animation: float-cloud 22s ease-in-out 3s infinite;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+@keyframes float-cloud {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(20px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(35px) translateY(10px);
+  }
+  75% {
+    transform: translateX(15px) translateY(5px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+/* ScrollLock utility classes */
+.scroll-lock {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  overscroll-behavior: none;
+  touch-action: none;
+  height: 100%;
+  inset: 0;
+}
+
+.scroll-lock-popup {
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  max-height: 90vh;
+}
+
+/* ทำให้แน่ใจว่า popup ยังคง scroll ได้ */
+.scroll-lock-container {
+  max-height: 100%;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+}
+
+/* ทำให้ modal แสดงผลถูกต้องบน iOS */
+@supports (-webkit-touch-callout: none) {
+  .scroll-lock {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+
+
+/* สำหรับการจัดการ main container */
+main.no-scroll {
+  overflow: hidden !important;
+  position: relative;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+/* Add exit animation for bottom sheet */
+.bottom-sheet-container.exit-animation {
+  animation: slideDown 0.3s ease-in forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* ปรับแต่ง overscroll behavior */
+html, body {
+  /* ป้องกันไม่ให้เกิด overscroll effect เฉพาะแนวนอน */
+  overscroll-behavior-x: none;
+  
+  /* แต่ยังคงใช้ overscroll ปกติสำหรับแนวตั้ง */
+  overscroll-behavior-y: auto;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* คลาส UI สำหรับพื้นที่ปลอดภัยด้านบน */
+.top-safe {
+  top: env(safe-area-inset-top);
+}
+
+/* Custom toast styles */
+.compact-toast {
+  max-width: 300px;
+  min-width: 0;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}

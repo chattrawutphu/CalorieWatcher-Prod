@@ -1,0 +1,83 @@
+export const homeTranslations = {
+  title: "ร้านค้าธีม",
+  subtitle: "ปรับแต่งประสบการณ์ของคุณ",
+  currentTheme: "ธีมปัจจุบัน",
+  applyTheme: "ใช้ธีม",
+  free: "ฟรี",
+  pro: "พรีเมียม",
+  upgrade: "อัพเกรดเป็นพรีเมียม",
+  downgrade: "ดาวน์เกรด",
+  subscriptionStatus: {
+    basic: "พื้นฐาน",
+    pro: "พรีเมียม"
+  },
+  premiumTitle: "คุณสมบัติพรีเมียม",
+  premiumDesc: "เข้าถึงธีมและคุณสมบัติพิเศษ",
+  upgradeNow: "อัพเกรดเดี๋ยวนี้",
+  themes: {
+    light: "ธีมสว่าง",
+    dark: "ธีมมืด",
+    chocolate: "ธีมช็อคโกแลต",
+    sweet: "ธีมหวาน",
+    broccoli: "ธีมบร็อคโคลี่",
+    watermelon: "แตงโม",
+    honey: "น้ำผึ้ง",
+    blueberry: "บลูเบอร์รี่"
+  },
+  apps: {
+    sectionTitle: "แอพและเครื่องมือ",
+    sectionSubtitle: "เครื่องมือที่เป็นประโยชน์สำหรับการเดินทางด้านโภชนาการของคุณ",
+    tddCalculator: {
+      title: "เครื่องคำนวณ TDD",
+      description: "คำนวณความต้องการแคลอรี่ประจำวันและอัตราส่วนโภชนาการที่เหมาะสม",
+      calculateButton: "คำนวณ TDD ของฉัน",
+      applyButton: "นำไปใช้กับการตั้งค่าของฉัน",
+      successMessage: "อัปเดตการตั้งค่าเรียบร้อยแล้ว!",
+      height: "ส่วนสูง",
+      weight: "น้ำหนัก",
+      age: "อายุ",
+      gender: "เพศ",
+      activityLevel: "ระดับกิจกรรม",
+      fitnessGoal: "เป้าหมายฟิตเนส",
+      muscleGain: "เพิ่มกล้ามเนื้อ",
+      fatLoss: "ลดไขมัน",
+      both: "สมดุล/รักษาสภาพ",
+      male: "ชาย",
+      female: "หญิง",
+      sedentary: "นั่งอยู่กับที่",
+      lightlyActive: "กิจกรรมเบา",
+      moderatelyActive: "กิจกรรมปานกลาง",
+      veryActive: "กิจกรรมหนัก",
+      extremelyActive: "กิจกรรมหนักมาก",
+      results: {
+        yourTdd: "TDD ของคุณ:",
+        caloriesPerDay: "แคลอรี่ต่อวัน",
+        macroRatios: "อัตราส่วนมหภาคที่แนะนำ:",
+        adjustRatios: "ปรับอัตราส่วน:",
+        protein: "โปรตีน",
+        carbs: "คาร์โบไฮเดรต",
+        fat: "ไขมัน",
+        goalAdjustment: "ปรับตามเป้าหมายฟิตเนสของคุณ",
+        baseCalories: "แคลอรี่พื้นฐาน:",
+        muscleGainAdjustment: "(+15% แคลอรี่สำหรับการเพิ่มกล้ามเนื้อ)",
+        fatLossAdjustment: "(-20% แคลอรี่สำหรับการลดไขมัน)",
+        noAdjustment: "(แคลอรี่เพื่อรักษาสภาพ)",
+        waterIntake: "ปริมาณน้ำที่แนะนำ:",
+        mlPerDay: "มล. ต่อวัน",
+        waterIntakeExplanation: "คำนวณจากน้ำหนักของคุณ (35มล. × กก.)"
+      }
+    },
+    petGame: {
+      title: "สัตว์เลี้ยงโภชนาการ",
+      description: "ดูแลสัตว์เลี้ยงเสมือนจริงของคุณโดยการบรรลุเป้าหมายโภชนาการ",
+      startGame: "เริ่มเกม",
+      continueGame: "เล่นต่อ",
+      feedPet: "ให้อาหารสัตว์เลี้ยง",
+      petStatus: "สถานะสัตว์เลี้ยง:",
+      happiness: "ความสุข",
+      health: "สุขภาพ",
+      energy: "พลังงาน",
+      level: "ระดับ"
+    }
+  }
+}; 

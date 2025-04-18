@@ -1,0 +1,42 @@
+/* Add keyframes for sweet floating animation */
+@keyframes float-sweet {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-5deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* Add background blurred emojis for sweet theme */
+.sweet::before {
+  content: "🍰";
+  position: fixed;
+  top: 10vh;
+  left: 7vw;
+  font-size: 5rem;
+  opacity: 0.2;
+  filter: blur(8px);
+  z-index: -1;
+  animation: float-sweet 9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.sweet::after {
+  content: "🧁";
+  position: fixed;
+  bottom: 15vh;
+  right: 7vw;
+  font-size: 5rem;
+  opacity: 0.2;
+  filter: blur(8px);
+  z-index: -1;
+  animation: float-sweet 9s ease-in-out 1.2s infinite;
+  transform-origin: center;
+}
