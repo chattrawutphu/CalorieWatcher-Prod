@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronLeft, Check, Sun, Moon, Laptop, Palette } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Animation variants
 const container = {
@@ -28,6 +29,11 @@ const item = {
 export default function AppearanceSettingsPage() {
   const { locale } = useLanguage();
   const { theme, setTheme } = useTheme();
+  
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // Simplified translations for this page
   const translations = {
@@ -102,18 +108,18 @@ export default function AppearanceSettingsPage() {
   
   // Define available themes
   const themes = [
-    { id: "system", name: t.system, icon: <Laptop className="h-5 w-5" /> },
-    { id: "light", name: t.light, icon: <Sun className="h-5 w-5" /> },
-    { id: "dark", name: t.dark, icon: <Moon className="h-5 w-5" /> },
-    { id: "chocolate", name: t.chocolate, icon: <Palette className="h-5 w-5 text-amber-800" /> },
-    { id: "sweet", name: t.sweet, icon: <Palette className="h-5 w-5 text-pink-500" /> },
-    { id: "broccoli", name: t.broccoli, icon: <Palette className="h-5 w-5 text-green-600" /> },
-    { id: "blueberry", name: t.blueberry, icon: <Palette className="h-5 w-5 text-blue-600" /> },
-    { id: "watermelon", name: t.watermelon, icon: <Palette className="h-5 w-5 text-red-500" /> },
-    { id: "honey", name: t.honey, icon: <Palette className="h-5 w-5 text-amber-500" /> },
+    { id: "system", name: t.system, icon: <Laptop className="h-4 w-4" /> },
+    { id: "light", name: t.light, icon: <Sun className="h-4 w-4" /> },
+    { id: "dark", name: t.dark, icon: <Moon className="h-4 w-4" /> },
+    { id: "chocolate", name: t.chocolate, icon: <Palette className="h-4 w-4 text-amber-800" /> },
+    { id: "sweet", name: t.sweet, icon: <Palette className="h-4 w-4 text-pink-500" /> },
+    { id: "broccoli", name: t.broccoli, icon: <Palette className="h-4 w-4 text-green-600" /> },
+    { id: "blueberry", name: t.blueberry, icon: <Palette className="h-4 w-4 text-blue-600" /> },
+    { id: "watermelon", name: t.watermelon, icon: <Palette className="h-4 w-4 text-red-500" /> },
+    { id: "honey", name: t.honey, icon: <Palette className="h-4 w-4 text-amber-500" /> },
   ];
   
-  // Handle theme change
+  // Handle theme change - apply immediately
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
     toast({
@@ -142,32 +148,44 @@ export default function AppearanceSettingsPage() {
       </div>
       
       <motion.div variants={item} className="space-y-4">
-        <div className="bg-[hsl(var(--card))] rounded-lg border border-[hsl(var(--border))]">
-          <div className="p-4 border-b border-[hsl(var(--border))]">
-            <h2 className="font-medium">{t.theme}</h2>
-          </div>
-          
-          <div className="divide-y divide-[hsl(var(--border))]">
-            {themes.map((themeOption) => (
-              <div
-                key={themeOption.id}
-                className="p-4 flex items-center justify-between cursor-pointer hover:bg-[hsl(var(--accent))]"
-                onClick={() => handleThemeChange(themeOption.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[hsl(var(--secondary))] flex items-center justify-center">
-                    {themeOption.icon}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">
+              {t.theme}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-[hsl(var(--border))]">
+              {themes.map((themeOption) => (
+                <motion.div
+                  key={themeOption.id}
+                  className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${
+                    theme === themeOption.id 
+                      ? 'bg-[hsl(var(--primary))/0.1]' 
+                      : 'hover:bg-[hsl(var(--accent))]'
+                  }`}
+                  onClick={() => handleThemeChange(themeOption.id)}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                      theme === themeOption.id 
+                        ? 'bg-[hsl(var(--primary))]' 
+                        : 'bg-[hsl(var(--secondary))]'
+                    }`}>
+                      {themeOption.icon}
+                    </div>
+                    <span className="font-medium text-sm">{themeOption.name}</span>
                   </div>
-                  <span>{themeOption.name}</span>
-                </div>
-                
-                {theme === themeOption.id && (
-                  <Check className="h-5 w-5 text-[hsl(var(--primary))]" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+                  
+                  {theme === themeOption.id && (
+                    <Check className="h-4 w-4 text-[hsl(var(--primary))]" />
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
     </motion.div>
   );

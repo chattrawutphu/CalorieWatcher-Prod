@@ -35,6 +35,11 @@ export default function WeightSettingsPage() {
   const [weightGoal, setWeightGoal] = useState<number | undefined>(undefined);
   const [hasChanges, setHasChanges] = useState(false);
   
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   // Load current weight goal on component mount
   useEffect(() => {
     const currentGoal = getWeightGoal();

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNutritionStore } from "@/lib/store/nutrition-store";
 import { useLanguage } from "@/components/providers/language-provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,11 @@ const item = {
 export default function NutritionSettingsPage() {
   const { locale } = useLanguage();
   const { goals, updateGoals } = useNutritionStore();
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Simplified translations for this page
   const translations = {
@@ -197,7 +202,7 @@ export default function NutritionSettingsPage() {
   };
   
   // Save settings
-  const handleSave = async () => {
+  const handleSaveChanges = async () => {
     try {
       // Validate total percentage is 100%
       const totalPercentage = proteinPercentage + fatPercentage + carbsPercentage;
@@ -286,10 +291,13 @@ export default function NutritionSettingsPage() {
       <motion.div variants={item} className="space-y-6">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-green-500" />
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-green-500" />
               {t.nutritionGoals}
             </CardTitle>
+            <CardDescription>
+              {t.dailyCalories}: {dailyCalories}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-3">
@@ -370,48 +378,37 @@ export default function NutritionSettingsPage() {
                   {validationMessage}
                 </div>
               )}
+
+              <div className="pt-4 flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={resetSettings}
+                  className=""
+                  disabled={!hasChanges}
+                >
+                  <RefreshCw className="h-4 w-4 mr-1.5" />
+                  {t.reset}
+                </Button>
+                
+                <Button
+                  onClick={handleSaveChanges}
+                  disabled={validationMessage !== null || saveStatus === 'saving' || !hasChanges}
+                  className="flex-1"
+                >
+                  {saveStatus === 'saving' ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : saveStatus === 'success' ? (
+                    <Check className="h-4 w-4 mr-1.5" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-1.5" />
+                  )}
+                  <span>{saveStatus === 'success' ? t.saved : t.save}</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
-      
-      {/* Fixed Action Buttons */}
-      {hasChanges && (
-        <motion.div 
-          className="fixed bottom-28 right-4 z-50"
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, y: 20 }}
-        >
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={resetSettings}
-              className="shadow-md"
-              size="sm"
-            >
-              <RefreshCw className="h-4 w-4 mr-1.5" />
-              <span>{t.reset}</span>
-            </Button>
-            
-            <Button
-              onClick={handleSave}
-              disabled={validationMessage !== null || saveStatus === 'saving'}
-              className="shadow-md"
-              size="sm"
-            >
-              {saveStatus === 'saving' ? (
-                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-              ) : saveStatus === 'success' ? (
-                <Check className="h-4 w-4 mr-1.5" />
-              ) : (
-                <Save className="h-4 w-4 mr-1.5" />
-              )}
-              <span>{saveStatus === 'success' ? t.saved : t.save}</span>
-            </Button>
-          </div>
-        </motion.div>
-      )}
     </motion.div>
   );
 } 

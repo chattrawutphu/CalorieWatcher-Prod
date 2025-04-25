@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronLeft, Check, Globe } from "lucide-react";
+import { ChevronLeft, Check, Globe, Save } from "lucide-react";
 
 // Animation variants
 const container = {
@@ -31,6 +31,11 @@ export default function LanguageSettingsPage() {
   const { locale, changeLanguage } = useLanguage();
   const [selectedLocale, setSelectedLocale] = useState(locale);
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Check if the selected locale is different from the current locale
   useEffect(() => {
@@ -178,6 +183,7 @@ export default function LanguageSettingsPage() {
               disabled={!hasChanges}
               className="w-full mt-6"
             >
+              <Save className="h-4 w-4 mr-2" />
               {t.saveChanges}
             </Button>
           </CardContent>

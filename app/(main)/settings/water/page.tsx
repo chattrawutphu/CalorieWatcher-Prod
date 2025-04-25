@@ -35,6 +35,11 @@ export default function WaterSettingsPage() {
   const [waterGoal, setWaterGoal] = useState<number>(2000);
   const [hasChanges, setHasChanges] = useState(false);
   
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   // Load current water goal on component mount
   useEffect(() => {
     const currentGoal = getWaterGoal();
