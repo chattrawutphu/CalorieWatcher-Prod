@@ -35,27 +35,19 @@ export default function SyncSettingsPage() {
   const { locale } = useLanguage();
   const { data: session, status } = useSession();
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
-  const [autoSync, setAutoSync] = useState<boolean>(true);
-  const [syncFrequency, setSyncFrequency] = useState<string>("hourly");
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [showResetDialog, setShowResetDialog] = useState<boolean>(false);
   const [syncCooldown, setSyncCooldown] = useState<boolean>(false);
   const [cooldownTime, setCooldownTime] = useState<number>(0);
+  
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // Load settings from localStorage on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedAutoSync = localStorage.getItem('autoSync');
-      if (storedAutoSync !== null) {
-        setAutoSync(storedAutoSync === 'true');
-      }
-      
-      const storedSyncFrequency = localStorage.getItem('syncFrequency');
-      if (storedSyncFrequency) {
-        setSyncFrequency(storedSyncFrequency);
-      }
-      
       const storedLastSyncTime = localStorage.getItem('last-sync-time');
       setLastSyncTime(storedLastSyncTime);
     }
@@ -109,19 +101,6 @@ export default function SyncSettingsPage() {
       syncNow: "Sync Now",
       syncing: "Syncing...",
       syncComplete: "Sync Complete",
-      autoSync: "Auto Sync",
-      enableAutoSync: "Enable automatic synchronization",
-      syncFrequency: "Sync Frequency",
-      hourly: "Hourly",
-      daily: "Daily",
-      weekly: "Weekly",
-      resetSync: "Reset Sync History",
-      resetSyncDesc: "Clear all sync history and treat this as a new device",
-      resetConfirm: "Are you sure?",
-      resetMessage: "This will clear all synchronization history. Your device will be treated as a new device, which may cause conflicts. This action cannot be undone.",
-      confirm: "Confirm",
-      cancel: "Cancel",
-      back: "Back",
       syncTip: "Sync regularly to keep your data up to date across all devices.",
       syncTooFrequent: "You're syncing too frequently",
       syncWaitMessage: "Please wait {minutes} minutes",
@@ -143,19 +122,6 @@ export default function SyncSettingsPage() {
       syncNow: "ซิงค์ตอนนี้",
       syncing: "กำลังซิงค์...",
       syncComplete: "ซิงค์เสร็จสิ้น",
-      autoSync: "ซิงค์อัตโนมัติ",
-      enableAutoSync: "เปิดใช้งานการซิงค์อัตโนมัติ",
-      syncFrequency: "ความถี่ในการซิงค์",
-      hourly: "ทุกชั่วโมง",
-      daily: "ทุกวัน",
-      weekly: "ทุกสัปดาห์",
-      resetSync: "รีเซ็ตประวัติการซิงค์",
-      resetSyncDesc: "ล้างประวัติการซิงค์ทั้งหมดและถือว่านี่เป็นอุปกรณ์ใหม่",
-      resetConfirm: "คุณแน่ใจหรือไม่?",
-      resetMessage: "การดำเนินการนี้จะล้างประวัติการซิงค์ทั้งหมด อุปกรณ์ของคุณจะถูกถือว่าเป็นอุปกรณ์ใหม่ ซึ่งอาจทำให้เกิดความขัดแย้งของข้อมูล การกระทำนี้ไม่สามารถยกเลิกได้",
-      confirm: "ยืนยัน",
-      cancel: "ยกเลิก",
-      back: "กลับ",
       syncTip: "ซิงค์เป็นประจำเพื่อให้ข้อมูลของคุณทันสมัยบนอุปกรณ์ทั้งหมด",
       syncTooFrequent: "คุณซิงค์บ่อยเกินไป",
       syncWaitMessage: "โปรดรอ {minutes} นาที",
@@ -177,19 +143,6 @@ export default function SyncSettingsPage() {
       syncNow: "今すぐ同期",
       syncing: "同期中...",
       syncComplete: "同期完了",
-      autoSync: "自動同期",
-      enableAutoSync: "自動同期を有効にする",
-      syncFrequency: "同期頻度",
-      hourly: "毎時",
-      daily: "毎日",
-      weekly: "毎週",
-      resetSync: "同期履歴をリセット",
-      resetSyncDesc: "すべての同期履歴をクリアし、これを新しいデバイスとして扱います",
-      resetConfirm: "よろしいですか？",
-      resetMessage: "これにより、すべての同期履歴がクリアされます。デバイスは新しいデバイスとして扱われ、データの競合が発生する可能性があります。この操作は元に戻せません。",
-      confirm: "確認",
-      cancel: "キャンセル",
-      back: "戻る",
       syncTip: "定期的に同期して、すべてのデバイスでデータを最新の状態に保ちます。",
       syncTooFrequent: "同期が頻繁すぎます",
       syncWaitMessage: "{minutes}分お待ちください",
@@ -211,19 +164,6 @@ export default function SyncSettingsPage() {
       syncNow: "立即同步",
       syncing: "同步中...",
       syncComplete: "同步完成",
-      autoSync: "自动同步",
-      enableAutoSync: "启用自动同步",
-      syncFrequency: "同步频率",
-      hourly: "每小时",
-      daily: "每天",
-      weekly: "每周",
-      resetSync: "重置同步历史",
-      resetSyncDesc: "清除所有同步历史并将此视为新设备",
-      resetConfirm: "您确定吗？",
-      resetMessage: "这将清除所有同步历史。您的设备将被视为新设备，这可能会导致数据冲突。此操作无法撤消。",
-      confirm: "确认",
-      cancel: "取消",
-      back: "返回",
       syncTip: "定期同步以保持所有设备上的数据更新。",
       syncTooFrequent: "同步频率过高",
       syncWaitMessage: "请等待{minutes}分钟",
@@ -238,30 +178,6 @@ export default function SyncSettingsPage() {
   
   // Get translations for current locale
   const t = translations[locale as keyof typeof translations] || translations.en;
-  
-  // Handle auto sync toggle
-  const handleAutoSyncToggle = (checked: boolean) => {
-    setAutoSync(checked);
-    localStorage.setItem('autoSync', checked.toString());
-    
-    if (checked) {
-      toast({
-        title: "Auto sync enabled",
-        duration: 2000,
-      });
-    } else {
-      toast({
-        title: "Auto sync disabled",
-        duration: 2000,
-      });
-    }
-  };
-  
-  // Handle sync frequency change
-  const handleSyncFrequencyChange = (frequency: string) => {
-    setSyncFrequency(frequency);
-    localStorage.setItem('syncFrequency', frequency);
-  };
   
   // Get date locale based on app language
   const getDateLocale = (): Locale | undefined => {
@@ -359,20 +275,6 @@ export default function SyncSettingsPage() {
     }, 2000);
   };
   
-  // Handle sync reset
-  const handleResetSync = () => {
-    // Clear sync history
-    localStorage.removeItem('last-sync-time');
-    setLastSyncTime(null);
-    
-    toast({
-      title: "Sync history reset",
-      duration: 3000,
-    });
-    
-    setShowResetDialog(false);
-  };
-  
   return (
     <motion.div
       className="max-w-md mx-auto min-h-screen pb-20"
@@ -439,100 +341,6 @@ export default function SyncSettingsPage() {
                 </>
               )}
             </Button>
-          </CardContent>
-        </Card>
-        
-        {/* Auto Sync Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <RefreshCw className="h-4 w-4 text-blue-500" />
-              {t.autoSync}
-            </CardTitle>
-            <CardDescription>
-              {t.enableAutoSync}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span>{t.autoSync}</span>
-              <Switch 
-                checked={autoSync} 
-                onCheckedChange={handleAutoSyncToggle}
-                disabled={!isOnline || status !== "authenticated"}
-              />
-            </div>
-            
-            {autoSync && (
-              <div className="space-y-2">
-                <div className="text-sm font-medium">{t.syncFrequency}</div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant={syncFrequency === "hourly" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleSyncFrequencyChange("hourly")}
-                    className="flex-1"
-                  >
-                    {t.hourly}
-                  </Button>
-                  <Button 
-                    variant={syncFrequency === "daily" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleSyncFrequencyChange("daily")}
-                    className="flex-1"
-                  >
-                    {t.daily}
-                  </Button>
-                  <Button 
-                    variant={syncFrequency === "weekly" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleSyncFrequencyChange("weekly")}
-                    className="flex-1"
-                  >
-                    {t.weekly}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* Reset Sync Card */}
-        <Card className="border-[hsl(var(--destructive)/15)] bg-[hsl(var(--destructive)/3)]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2 text-[hsl(var(--destructive))]">
-              <AlertTriangle className="h-4 w-4 text-[hsl(var(--destructive))]" />
-              {t.resetSync}
-            </CardTitle>
-            <CardDescription className="text-[hsl(var(--destructive)/80)]">
-              {t.resetSyncDesc}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive" 
-                  className="w-full"
-                >
-                  {t.resetSync}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t.resetConfirm}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t.resetMessage}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
-                  <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleResetSync}>
-                    {t.confirm}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </CardContent>
         </Card>
         

@@ -21,18 +21,27 @@ type TranslationType = typeof homeTranslations.en;
 
 // Spring animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 20, opacity: 0 },
-  show: { y: 0, opacity: 1 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 const ThemeCard = ({ 

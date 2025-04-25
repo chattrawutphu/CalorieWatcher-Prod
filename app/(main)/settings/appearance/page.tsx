@@ -7,23 +7,32 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronLeft, Check, Sun, Moon, Laptop, Palette } from "lucide-react";
+import { ChevronLeft, Check, Sun, Moon, Laptop } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 10, opacity: 0 },
-  show: { y: 0, opacity: 1 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 export default function AppearanceSettingsPage() {
@@ -111,12 +120,12 @@ export default function AppearanceSettingsPage() {
     { id: "system", name: t.system, icon: <Laptop className="h-4 w-4" /> },
     { id: "light", name: t.light, icon: <Sun className="h-4 w-4" /> },
     { id: "dark", name: t.dark, icon: <Moon className="h-4 w-4" /> },
-    { id: "chocolate", name: t.chocolate, icon: <Palette className="h-4 w-4 text-amber-800" /> },
-    { id: "sweet", name: t.sweet, icon: <Palette className="h-4 w-4 text-pink-500" /> },
-    { id: "broccoli", name: t.broccoli, icon: <Palette className="h-4 w-4 text-green-600" /> },
-    { id: "blueberry", name: t.blueberry, icon: <Palette className="h-4 w-4 text-blue-600" /> },
-    { id: "watermelon", name: t.watermelon, icon: <Palette className="h-4 w-4 text-red-500" /> },
-    { id: "honey", name: t.honey, icon: <Palette className="h-4 w-4 text-amber-500" /> },
+    { id: "chocolate", name: t.chocolate, icon: <span className="text-lg">🍫</span> },
+    { id: "sweet", name: t.sweet, icon: <span className="text-lg">🍬</span> },
+    { id: "broccoli", name: t.broccoli, icon: <span className="text-lg">🥦</span> },
+    { id: "blueberry", name: t.blueberry, icon: <span className="text-lg">🫐</span> },
+    { id: "watermelon", name: t.watermelon, icon: <span className="text-lg">🍉</span> },
+    { id: "honey", name: t.honey, icon: <span className="text-lg">🍯</span> },
   ];
   
   // Handle theme change - apply immediately

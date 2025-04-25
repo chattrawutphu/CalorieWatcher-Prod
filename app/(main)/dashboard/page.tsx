@@ -45,18 +45,27 @@ import { CSS } from "@dnd-kit/utilities";
 
 // Animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 20, opacity: 0 },
-  show: { y: 0, opacity: 1 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 const calendarVariants = {
@@ -67,19 +76,19 @@ const calendarVariants = {
 
 // Calendar popup animation variants
 const popupVariants = {
-  hidden: { opacity: 0, y: 100, scale: 0.98 },
+  hidden: { opacity: 0, y: 50, scale: 0.98 },
   visible: { 
     opacity: 1, 
     y: 0,
     scale: 1,
-    transition: { duration: 0.3 }
+    transition: { duration: 0.25, ease: "easeOut" }
   },
   exit: { 
     opacity: 0, 
-    y: 100,
+    y: 20,
     scale: 0.98,
     transition: { 
-      duration: 0.25,
+      duration: 0.2,
       ease: "easeInOut" 
     }
   }
@@ -87,22 +96,16 @@ const popupVariants = {
 
 // Overlay animation variants
 const overlayVariants = {
-  hidden: { 
-    opacity: 0,
-    transition: {
-      duration: 0.25
-    }
-  },
+  hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: {
-      duration: 0.25
-    }
+    transition: { duration: 0.2 }
   },
   exit: { 
     opacity: 0,
     transition: { 
-      duration: 0.25
+      duration: 0.15,
+      ease: "easeInOut"
     }
   }
 };
@@ -1420,9 +1423,9 @@ export default function DashboardPage() {
                   meals.map((meal, index) => (
                   <motion.div 
                     key={meal.id || index}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 1, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.03, duration: 0.2, ease: "easeOut" }}
                     className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-[hsl(var(--accent))/0.1] transition-colors cursor-pointer"
                   >
                     <div className="flex-1">

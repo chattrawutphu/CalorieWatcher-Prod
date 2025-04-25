@@ -29,18 +29,27 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
 // Animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 10, opacity: 0 },
-  show: { y: 0, opacity: 1 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 // Translations
@@ -471,7 +480,7 @@ export default function SettingsPage() {
         <motion.div variants={item} className="mb-6">
           <Card className="overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 mb-3">
                 <div className="w-12 h-12 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center text-[hsl(var(--primary-foreground))]">
                   <User className="h-5 w-5" />
                 </div>
@@ -481,16 +490,16 @@ export default function SettingsPage() {
                     {session?.user?.email || ""}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => signOut()}
-                  className="rounded-full hover:bg-[hsl(var(--destructive))/0.1] hover:text-[hsl(var(--destructive))]"
-                >
-                  <LogOut className="h-4 w-4 mr-1.5" />
-                  <span className="text-xs">{t.signOut}</span>
-                </Button>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => signOut()}
+                className="w-full rounded-full hover:bg-[hsl(var(--destructive))/0.1] hover:text-[hsl(var(--destructive))]"
+              >
+                <LogOut className="h-4 w-4 mr-1.5" />
+                <span className="text-xs">{t.signOut}</span>
+              </Button>
             </CardContent>
           </Card>
         </motion.div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,18 +18,27 @@ import { useFoodLogStore } from "@/lib/store/food-log-store";
 
 // Animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 10, opacity: 0 },
-  show: { y: 0, opacity: 1 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 export default function DataSettingsPage() {
@@ -39,6 +48,11 @@ export default function DataSettingsPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetTimerId, setResetTimerId] = useState<NodeJS.Timeout | null>(null);
+  
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // Access to the stores for data operations
   const waterStore = useWaterStore();

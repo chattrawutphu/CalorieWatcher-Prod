@@ -34,18 +34,27 @@ import { aiAssistantTranslations } from "@/lib/translations/ai-assistant";
 
 // Animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 // Mock AI analysis response

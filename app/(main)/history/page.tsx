@@ -20,41 +20,50 @@ const DAYS_OF_WEEK_ZH = ["日", "一", "二", "三", "四", "五", "六"];
 
 // Spring animation variants
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.05,
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 20, opacity: 0 },
-  show: { y: 0, opacity: 1 }
+  hidden: { y: 10, opacity: 1 },
+  show: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 };
 
 // Date slider item animation variant
 const sliderItem = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: { opacity: 1 }
 };
 
 // Calendar popup animation variants
 const popupVariants = {
-  hidden: { opacity: 0, y: 100, scale: 0.98 },
+  hidden: { opacity: 0, y: 50, scale: 0.98 },
   visible: { 
     opacity: 1, 
     y: 0,
     scale: 1,
-    transition: { duration: 0.3 }
+    transition: { duration: 0.25, ease: "easeOut" }
   },
   exit: { 
     opacity: 0, 
-    y: 100,
+    y: 20,
     scale: 0.98,
     transition: { 
-      duration: 0.25,
+      duration: 0.2,
       ease: "easeInOut" 
     }
   }
@@ -65,12 +74,12 @@ const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: { duration: 0.25 }
+    transition: { duration: 0.2 }
   },
   exit: { 
     opacity: 0,
     transition: { 
-      duration: 0.25,
+      duration: 0.15,
       ease: "easeInOut",
       delay: 0.05
     }
@@ -418,9 +427,9 @@ export default function HistoryPage() {
               key={meal.id} 
               className="bg-[hsl(var(--card))] p-3 rounded-lg border border-[hsl(var(--border))] hover:shadow-md transition-shadow"
               variants={item}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 1, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
+              transition={{ delay: idx * 0.03, duration: 0.2, ease: "easeOut" }}
             >
               <div className="flex justify-between items-start">
                 <div>
