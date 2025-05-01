@@ -626,9 +626,9 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
               initial={{ scale: 0.9, opacity: 0.5 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="h-6 w-6 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center"
+              className="h-9 w-9 bg-violet-500 rounded-full flex items-center justify-center text-white"
             >
-              <Activity className="h-3.5 w-3.5" />
+              <Activity className="h-5 w-5" />
             </motion.div>
             <h2 className="text-base font-medium text-[hsl(var(--foreground))]">
               {getMetricTranslation("analytics")}

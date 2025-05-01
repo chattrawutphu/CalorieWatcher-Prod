@@ -95,8 +95,8 @@ export function WaterTracker({ date }: { date: string }) {
         {/* Header - Elegant design */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center">
-              <Droplet className="h-3.5 w-3.5" />
+            <div className="h-9 w-9 bg-cyan-500 rounded-full flex items-center justify-center text-white">
+              <Droplet className="h-5 w-5" />
             </div>
             <h2 className="text-base font-medium text-[hsl(var(--foreground))]">{t.title}</h2>
           </div>

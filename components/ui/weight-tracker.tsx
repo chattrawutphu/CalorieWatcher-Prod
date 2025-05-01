@@ -270,10 +270,10 @@ export function WeightTracker({ date }: WeightTrackerProps) {
         {/* Header */}
         <motion.div variants={item} className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center">
-              <Scale className="h-3.5 w-3.5" />
+            <div className="h-9 w-9 bg-emerald-500 rounded-full flex items-center justify-center text-white">
+              <Scale className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-medium">{t.title}</h2>
+            <h2 className="text-base font-medium text-[hsl(var(--foreground))]">{t.title}</h2>
           </div>
           
           {!isEditing && (

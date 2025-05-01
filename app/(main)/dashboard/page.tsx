@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { WaterTracker } from "@/components/ui/water-tracker";
 import { WeightTracker } from "@/components/ui/weight-tracker";
 import { AnalyticsWidget } from "@/components/ui/analytics-widget";
+import { useToast } from '@/components/ui/use-toast';
 
 // Import dnd-kit
 import { 
@@ -42,6 +43,17 @@ import {
   verticalListSortingStrategy 
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
+// Widget types and icons with beautiful colors
+const WIDGET_TYPES = {
+  NUTRITION: { icon: <BarChart3 className="h-5 w-5" />, color: "bg-blue-500" },
+  MEAL: { icon: <UtensilsCrossed className="h-5 w-5" />, color: "bg-orange-500" },
+  ANALYTICS: { icon: <Activity className="h-5 w-5" />, color: "bg-violet-500" },
+  WATER: { icon: <Droplet className="h-5 w-5" />, color: "bg-cyan-500" },
+  WEIGHT: { icon: <Scale className="h-5 w-5" />, color: "bg-emerald-500" },
+  MOOD: { icon: <SmilePlus className="h-5 w-5" />, color: "bg-amber-500" },
+  CALENDAR: { icon: <CalendarIcon className="h-5 w-5" />, color: "bg-indigo-500" }
+};
 
 // Animation variants
 const container = {
@@ -1185,6 +1197,14 @@ export default function DashboardPage() {
               return widgetVisibility.nutritionSummary && (
                 <motion.div key="nutritionSummary" variants={item}>
             <Card className="p-5 shadow-md rounded-2xl overflow-hidden mt-1">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className={`h-9 w-9 rounded-full ${WIDGET_TYPES.NUTRITION.color} flex items-center justify-center text-white`}>
+                    {WIDGET_TYPES.NUTRITION.icon}
+                  </div>
+                  <h2 className="text-base font-medium text-[hsl(var(--foreground))]">{t.calories}</h2>
+                </div>
+              </div>
             <div className="space-y-1">
               {/* Calories */}
               <div className="space-y-2">
@@ -1388,30 +1408,30 @@ export default function DashboardPage() {
               );
             case 'mealHistory':
               return widgetVisibility.mealHistory && (
-                <motion.div key="mealHistory" variants={item}>
-          <Card className="p-5 shadow-md rounded-2xl mt-1">
+                <motion.div key="mealHistory" variants={item} className="mt-1">
+          <Card className="p-5 shadow-md rounded-2xl">
             <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center">
-                    <UtensilsCrossed className="h-3.5 w-3.5" />
-                  </div>
-                  <h2 className="text-base font-medium text-[hsl(var(--foreground))]">{t.mealHistory}</h2>
+              <div className="flex items-center gap-2">
+                <div className={`h-9 w-9 rounded-full ${WIDGET_TYPES.MEAL.color} flex items-center justify-center text-white`}>
+                  {WIDGET_TYPES.MEAL.icon}
                 </div>
-                {meals.length > 0 && (
+                <h2 className="text-base font-medium text-[hsl(var(--foreground))]">{t.mealHistory}</h2>
+              </div>
+              {/* Edit and Filters Buttons */}
+              <div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setIsEditingMeals(!isEditingMeals)}
-                    className="rounded-full h-7 w-7 p-0 flex items-center justify-center group transition-all duration-300 hover:bg-[hsl(var(--primary))/0.15] hover:scale-105 active:scale-95"
+                  onClick={() => setIsEditingMeals(prev => !prev)}
+                  className="h-7 w-7 p-0 rounded-full hover:bg-[hsl(var(--muted))]"
                 >
-                  {isEditingMeals ? (
-                      <Check className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                  ) : (
-                      <Pencil className="h-3.5 w-3.5 text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--primary))] transition-colors" />
-                  )}
+                  {isEditingMeals 
+                    ? <Check className="h-3.5 w-3.5 text-green-500" /> 
+                    : <Edit className="h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]" />
+                  }
                   <span className="sr-only">{isEditingMeals ? translations.done : translations.edit}</span>
                 </Button>
-              )}
+              </div>
             </div>
             
             <div className="space-y-3">
@@ -1498,8 +1518,8 @@ export default function DashboardPage() {
           <Card className="p-5 shadow-md rounded-2xl">
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center">
-                    <SmilePlus className="h-3.5 w-3.5" />
+                  <div className={`h-9 w-9 rounded-full ${WIDGET_TYPES.MOOD.color} flex items-center justify-center text-white`}>
+                    {WIDGET_TYPES.MOOD.icon}
                   </div>
                   <h2 className="text-base font-medium text-[hsl(var(--foreground))]">{t.mood}</h2>
                 </div>
