@@ -39,8 +39,8 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
   const t = translations[locale as keyof typeof translations] || translations.en;
   const pathname = usePathname();
   
-  // Check if current path is dashboard or history
-  const isAllowedPath = pathname.includes("/dashboard") || pathname.includes("/state");
+  // Check if current path is dashboard or stats
+  const isAllowedPath = pathname.includes("/dashboard") || pathname.includes("/stats");
   
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [readyToRefresh, setReadyToRefresh] = useState(false);

@@ -70,28 +70,6 @@ export default memo(function PageTransition({ children }: PageTransitionProps) {
   
   return (
     <>
-      {/* ปรับปรุงแถบโหลดให้เร็วขึ้น */}
-      <AnimatePresence>
-        {isRouteChanging && (
-          <motion.div
-            initial={{ opacity: 0.8 }} // เริ่มที่ความทึบสูงกว่าเดิม
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.1 }} // ลดเวลาลงจาก default
-            className="fixed top-0 left-0 right-0 z-50 h-1 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))]"
-          >
-            <motion.div
-              className="h-full bg-[hsl(var(--primary))]"
-              initial={{ width: "0%" }}
-              animate={{ 
-                width: "100%",
-                transition: { duration: 0.5, ease: "easeOut" } // ลดจาก 1 วินาที เป็น 0.5 วินาที
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
       {/* ปรับการเปลี่ยนหน้าให้เร็วขึ้น */}
       <AnimatePresence mode="wait">
         <motion.div
