@@ -801,8 +801,8 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
                   )}
                   <defs>
                     <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary-foreground))" />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" />
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
                     </linearGradient>
                   </defs>
                   <Bar 
@@ -811,12 +811,13 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
                     radius={[4, 4, 0, 0]}
                     animationDuration={1000}
                     animationEasing="ease-out"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={1}
                   >
                     {chartData.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`}
-                        fill="hsl(var(--primary))"
-                        fillOpacity={0.8}
+                        fill="url(#barGradient)"
                         stroke="hsl(var(--primary))"
                         strokeWidth={0.5}
                       />

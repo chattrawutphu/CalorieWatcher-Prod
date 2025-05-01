@@ -51,55 +51,99 @@ import { Separator } from "@/components/ui/separator";
 
 // Animation variants
 const container = {
-  hidden: { opacity: 1 },
+  hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      duration: 0.3,
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+      duration: 0.5,
       ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 10, opacity: 1 },
+  hidden: { y: 15, opacity: 0 },
   show: { 
     y: 0, 
     opacity: 1,
     transition: {
-      duration: 0.2,
-      ease: "easeOut"
+      type: "spring",
+      stiffness: 300,
+      damping: 24,
+      mass: 0.9
     }
   }
 };
 
 const cardHover = {
-  rest: { scale: 1 },
-  hover: { scale: 1.02, transition: { duration: 0.2 } }
+  rest: { scale: 1, boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)" },
+  hover: { 
+    scale: 1.02, 
+    boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.09)",
+    transition: { 
+      duration: 0.3,
+      ease: "easeOut"
+    } 
+  }
 };
 
 // Types
 type TimeRange = "week" | "month" | "3months" | "6months" | "year";
 type StatTab = "overview" | "nutrition" | "meals" | "trends" | "achievements";
 
-// Colors for charts with richer palette
+// Colors for charts with richer palette - Update with modern vibrant colors
 const COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--secondary))",
-  "hsl(var(--accent))",
-  "hsl(240, 100%, 70%)",
-  "hsl(330, 100%, 70%)",
-  "hsl(120, 90%, 70%)",
-  "hsl(24, 90%, 65%)",
-  "hsl(270, 85%, 65%)",
+  "hsl(var(--primary))",           // Primary Theme Color
+  "hsl(var(--accent))",            // Accent Theme Color
+  "hsl(262, 83%, 65%)",            // Rich Purple
+  "hsl(329, 95%, 70%)",            // Vibrant Pink
+  "hsl(24, 90%, 60%)",             // Warm Orange
+  "hsl(188, 95%, 60%)",            // Turquoise
+  "hsl(62, 90%, 60%)",             // Bright Yellow
+  "hsl(152, 74%, 55%)",            // Emerald Green
+  "hsl(340, 80%, 65%)",            // Rose
+  "hsl(198, 90%, 60%)"             // Azure Blue
 ];
 
-const GRADIENTS = [
-  ["hsl(var(--primary))", "hsl(var(--primary-foreground))"],
-  ["hsl(var(--secondary))", "hsl(var(--secondary-foreground))"],
-  ["hsl(var(--accent))", "hsl(var(--accent-foreground))"],
-];
+// Gradients for more visually stunning charts
+const GRADIENTS = {
+  primary: ["hsl(var(--primary))", "hsla(var(--primary)/0.5)"],
+  secondary: ["hsl(var(--secondary))", "hsla(var(--secondary)/0.5)"],
+  accent: ["hsl(var(--accent))", "hsla(var(--accent)/0.5)"],
+  blue: ["hsl(212, 100%, 50%)", "hsla(212, 100%, 50%, 0.2)"],
+  purple: ["hsl(262, 83%, 65%)", "hsla(262, 83%, 65%, 0.2)"],
+  pink: ["hsl(329, 95%, 70%)", "hsla(329, 95%, 70%, 0.2)"],
+  orange: ["hsl(24, 90%, 60%)", "hsla(24, 90%, 60%, 0.2)"],
+  green: ["hsl(152, 74%, 55%)", "hsla(152, 74%, 55%, 0.2)"],
+};
+
+// Add this after defining GRADIENTS
+const TOOLTIPS = {
+  contentStyle: { 
+    backgroundColor: 'hsl(var(--card))', 
+    borderColor: 'transparent',
+    borderRadius: '12px',
+    boxShadow: '0px 8px 24px rgba(0,0,0,0.12)',
+    padding: '10px 12px',
+    border: 'none'
+  },
+  itemStyle: { 
+    color: 'hsl(var(--foreground))', 
+    fontWeight: 500 
+  },
+  labelStyle: { 
+    color: 'hsl(var(--foreground))', 
+    fontWeight: 'bold', 
+    marginBottom: '5px' 
+  },
+  cursor: { 
+    stroke: 'hsl(var(--primary))', 
+    strokeWidth: 1, 
+    strokeDasharray: '4 4' 
+  }
+};
 
 // Achievement types and icons
 const ACHIEVEMENT_TYPES = {
@@ -109,6 +153,14 @@ const ACHIEVEMENT_TYPES = {
   WEIGHT: { icon: <Weight className="h-5 w-5" />, color: "bg-violet-500" },
   CONSISTENCY: { icon: <CalendarDays className="h-5 w-5" />, color: "bg-green-500" },
   MILESTONE: { icon: <Trophy className="h-5 w-5" />, color: "bg-amber-500" },
+};
+
+// Add a standardized BAR_STYLE object for consistent styling
+const BAR_STYLE = {
+  radius: [4, 4, 0, 0] as [number, number, number, number],
+  animationDuration: 1200,
+  animationEasing: "ease-out" as const,
+  strokeWidth: 1
 };
 
 export default function StatsPage() {
@@ -744,97 +796,159 @@ export default function StatsPage() {
             
             {/* Weekly Calorie Trends Chart */}
             <motion.div variants={item}>
-              <Card className="overflow-hidden">
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-lg">
-                    {locale === 'th' ? 'แนวโน้มแคลอรี่' : 
-                     locale === 'ja' ? 'カロリー傾向' : 
-                     locale === 'zh' ? '卡路里趋势' : 
-                     'Calorie Trends'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 pt-2">
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={calorieTrendData.slice(-7)} // Show last 7 data points
-                                margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                          itemStyle={{ color: 'hsl(var(--foreground))' }}
-                          labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="calories" 
-                          stroke="hsl(var(--primary))" 
-                          fill="hsl(var(--primary)/0.2)" 
-                          name={locale === 'th' ? 'แคลอรี่' : locale === 'ja' ? 'カロリー' : locale === 'zh' ? '卡路里' : 'Calories'} 
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="goal" 
-                          stroke="hsl(var(--muted-foreground))" 
-                          strokeDasharray="5 5" 
-                          name={locale === 'th' ? 'เป้าหมาย' : locale === 'ja' ? '目標' : locale === 'zh' ? '目标' : 'Goal'} 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                variants={cardHover}
+                initial="rest"
+                whileHover="hover"
+                className="h-full"
+              >
+                <Card className="overflow-hidden h-full">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-lg">
+                      {locale === 'th' ? 'แนวโน้มแคลอรี่' : 
+                        locale === 'ja' ? 'カロリー傾向' : 
+                        locale === 'zh' ? '卡路里趋势' : 
+                        'Calorie Trends'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 pt-2">
+                    <div className="h-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={calorieTrendData.slice(-7)} // Show last 7 data points
+                                  margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                          <defs>
+                            <linearGradient id="colorCalories" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0.1}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                          <XAxis 
+                            dataKey="name" 
+                            stroke="hsl(var(--muted-foreground))" 
+                            tickLine={false}
+                            axisLine={false}
+                            dy={5}
+                            tick={{ fontSize: 10, fontWeight: 500 }}
+                            tickMargin={8}
+                          />
+                          <YAxis 
+                            stroke="hsl(var(--muted-foreground))" 
+                            tickLine={false}
+                            axisLine={false}
+                            dx={-5}
+                            tick={{ fontSize: 10 }}
+                            tickFormatter={(value) => value === 0 ? '' : value.toString()}
+                            width={30}
+                          />
+                          <Tooltip 
+                            contentStyle={TOOLTIPS.contentStyle}
+                            itemStyle={TOOLTIPS.itemStyle}
+                            labelStyle={TOOLTIPS.labelStyle}
+                            cursor={TOOLTIPS.cursor}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="calories" 
+                            stroke={COLORS[0]} 
+                            strokeWidth={2}
+                            fill="url(#colorCalories)" 
+                            name={locale === 'th' ? 'แคลอรี่' : locale === 'ja' ? 'カロリー' : locale === 'zh' ? '卡路里' : 'Calories'} 
+                            activeDot={{ r: 6, strokeWidth: 0, fill: COLORS[0] }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="goal" 
+                            stroke="hsl(var(--muted-foreground))" 
+                            strokeDasharray="5 5" 
+                            strokeWidth={1.5}
+                            dot={false}
+                            name={locale === 'th' ? 'เป้าหมาย' : locale === 'ja' ? '目標' : locale === 'zh' ? '目标' : 'Goal'} 
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </motion.div>
             
             {/* Nutrient Distribution */}
             <motion.div variants={item}>
-              <Card className="overflow-hidden">
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-lg">
-                    {locale === 'th' ? 'สัดส่วนสารอาหาร' : 
-                     locale === 'ja' ? '栄養素の割合' : 
-                     locale === 'zh' ? '营养分布' : 
-                     'Nutrient Distribution'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-2 p-0">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="w-full md:w-1/2 h-[180px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={nutrientDistribution}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={40}
-                            outerRadius={70}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {nutrientDistribution.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                            itemStyle={{ color: 'hsl(var(--foreground))' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
+              <motion.div
+                variants={cardHover}
+                initial="rest"
+                whileHover="hover"
+                className="h-full"
+              >
+                <Card className="overflow-hidden h-full">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-lg">
+                      {locale === 'th' ? 'สัดส่วนสารอาหาร' : 
+                       locale === 'ja' ? '栄養素の割合' : 
+                       locale === 'zh' ? '营养分布' : 
+                       'Nutrient Distribution'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-2 p-0">
+                    <div className="flex flex-col md:flex-row">
+                      <div className="w-full md:w-1/2 h-[180px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <defs>
+                              {nutrientDistribution.map((entry, index) => (
+                                <linearGradient key={`gradient-${index}`} id={`pieGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={1} />
+                                  <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.6} />
+                                </linearGradient>
+                              ))}
+                            </defs>
+                            <Pie
+                              data={nutrientDistribution}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={40}
+                              outerRadius={70}
+                              paddingAngle={5}
+                              dataKey="value"
+                              strokeWidth={1}
+                              stroke="hsl(var(--background))"
+                              animationBegin={200}
+                              animationDuration={1000}
+                              animationEasing="ease-out"
+                            >
+                              {nutrientDistribution.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={COLORS[index % COLORS.length]} 
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={TOOLTIPS.contentStyle}
+                              itemStyle={TOOLTIPS.itemStyle}
+                              labelStyle={TOOLTIPS.labelStyle}
+                              formatter={(value: any, name: string, props: any) => [
+                                `${Math.round(value)}g (${props.payload.percentage}%)`, 
+                                name
+                              ]}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="w-full md:w-1/2 flex flex-col justify-center p-4 space-y-3">
+                        {nutrientDistribution.map((item, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                            <div className="text-sm flex-1">{item.name}</div>
+                            <div className="text-sm font-medium">{item.percentage}%</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="w-full md:w-1/2 flex flex-col justify-center p-4 space-y-3">
-                      {nutrientDistribution.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                          <div className="text-sm flex-1">{item.name}</div>
-                          <div className="text-sm font-medium">{item.percentage}%</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </motion.div>
             
             {/* Latest Achievements */}
@@ -900,77 +1014,150 @@ export default function StatsPage() {
           <TabsContent value="meals" className="mt-0 space-y-4">
             {/* Meal Distribution Chart */}
             <motion.div variants={item}>
-              <Card className="overflow-hidden">
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-lg">
-                    {locale === 'th' ? 'การกระจายมื้ออาหาร' : 
-                     locale === 'ja' ? '食事の分布' : 
-                     locale === 'zh' ? '餐食分布' : 
-                     'Meal Distribution'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="w-full md:w-1/2 h-[240px] p-2">
-                      <h3 className="text-sm font-medium text-center mb-2">
-                        {locale === 'th' ? 'จำนวนมื้อรวม' : 
-                         locale === 'ja' ? '合計食事回数' : 
-                         locale === 'zh' ? '总餐食次数' : 
-                         'Meal Count'}
-                      </h3>
-                      <ResponsiveContainer width="100%" height="85%">
-                        <BarChart data={mealDistributionData.byCount}>
-                          <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                          <YAxis stroke="hsl(var(--muted-foreground))" />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                            formatter={(value: any) => [value, locale === 'th' ? 'มื้อ' : locale === 'ja' ? '食事' : locale === 'zh' ? '餐' : 'meals']}
-                          />
-                          <Bar 
-                            dataKey="value" 
-                            name={locale === 'th' ? 'จำนวนมื้อ' : locale === 'ja' ? '食事数' : locale === 'zh' ? '餐点数' : 'Meal Count'}
-                          >
-                            {mealDistributionData.byCount.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+              <motion.div
+                variants={cardHover}
+                initial="rest"
+                whileHover="hover"
+                className="h-full"
+              >
+                <Card className="overflow-hidden h-full">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-lg">
+                      {locale === 'th' ? 'การกระจายมื้ออาหาร' : 
+                       locale === 'ja' ? '食事の分布' : 
+                       locale === 'zh' ? '餐食分布' : 
+                       'Meal Distribution'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col md:flex-row">
+                      <div className="w-full md:w-1/2 h-[240px] p-2">
+                        <h3 className="text-sm font-medium text-center mb-2">
+                          {locale === 'th' ? 'จำนวนมื้อรวม' : 
+                           locale === 'ja' ? '合計食事回数' : 
+                           locale === 'zh' ? '总餐食次数' : 
+                           'Meal Count'}
+                        </h3>
+                        <ResponsiveContainer width="100%" height="85%">
+                          <BarChart data={mealDistributionData.byCount}>
+                            <defs>
+                              {mealDistributionData.byCount.map((entry, index) => (
+                                <linearGradient 
+                                  key={`barGradient-${index}`} 
+                                  id={`barGradient-${index}`} 
+                                  x1="0" y1="0" x2="0" y2="1"
+                                >
+                                  <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.9}/>
+                                  <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.6}/>
+                                </linearGradient>
+                              ))}
+                            </defs>
+                            <XAxis 
+                              dataKey="name" 
+                              stroke="hsl(var(--muted-foreground))" 
+                              tickLine={false}
+                              axisLine={false}
+                            />
+                            <YAxis 
+                              stroke="hsl(var(--muted-foreground))" 
+                              tickLine={false}
+                              axisLine={false}
+                            />
+                            <Tooltip 
+                              contentStyle={TOOLTIPS.contentStyle}
+                              itemStyle={TOOLTIPS.itemStyle}
+                              formatter={(value: any) => [value, locale === 'th' ? 'มื้อ' : locale === 'ja' ? '食事' : locale === 'zh' ? '餐' : 'meals']}
+                            />
+                            <Bar 
+                              dataKey="value" 
+                              fill="url(#barGradient)"
+                              radius={BAR_STYLE.radius}
+                              animationDuration={BAR_STYLE.animationDuration}
+                              animationEasing={BAR_STYLE.animationEasing}
+                            >
+                              {mealDistributionData.byCount.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={`url(#barGradient-${index})`}
+                                  stroke={COLORS[index % COLORS.length]}
+                                  strokeWidth={BAR_STYLE.strokeWidth}
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="w-full md:w-1/2 h-[240px] p-2">
+                        <h3 className="text-sm font-medium text-center mb-2">
+                          {locale === 'th' ? 'แคลอรี่เฉลี่ยต่อมื้อ' : 
+                           locale === 'ja' ? '食事あたりの平均カロリー' : 
+                           locale === 'zh' ? '每餐平均卡路里' : 
+                           'Average Calories per Meal'}
+                        </h3>
+                        <ResponsiveContainer width="100%" height="85%">
+                          <BarChart data={mealDistributionData.byCalories}>
+                            <defs>
+                              {mealDistributionData.byCalories.map((entry, index) => (
+                                <linearGradient 
+                                  key={`barGradientCal-${index}`} 
+                                  id={`barGradientCal-${index}`} 
+                                  x1="0" y1="0" x2="0" y2="1"
+                                >
+                                  <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.9}/>
+                                  <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.6}/>
+                                </linearGradient>
+                              ))}
+                            </defs>
+                            <XAxis 
+                              dataKey="name" 
+                              stroke="hsl(var(--muted-foreground))" 
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 10, fontWeight: 500 }}
+                              tickMargin={8}
+                            />
+                            <YAxis 
+                              stroke="hsl(var(--muted-foreground))" 
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 10 }}
+                              tickFormatter={(value) => value === 0 ? '' : value.toString()}
+                              width={30}
+                            />
+                            <Tooltip 
+                              contentStyle={TOOLTIPS.contentStyle}
+                              itemStyle={TOOLTIPS.itemStyle}
+                              labelStyle={TOOLTIPS.labelStyle}
+                              formatter={(value: any) => [value, 'kcal']}
+                            />
+                            <Bar 
+                              dataKey="value" 
+                              radius={BAR_STYLE.radius}
+                              animationDuration={BAR_STYLE.animationDuration}
+                              animationEasing={BAR_STYLE.animationEasing}
+                              name={locale === 'th' ? 'แคลอรี่' : locale === 'ja' ? 'カロリー' : locale === 'zh' ? '卡路里' : 'Calories'}
+                            >
+                              {mealDistributionData.byCalories.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={`url(#barGradientCal-${index})`}
+                                  stroke={COLORS[index % COLORS.length]}
+                                  strokeWidth={BAR_STYLE.strokeWidth}
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
-                    <div className="w-full md:w-1/2 h-[240px] p-2">
-                      <h3 className="text-sm font-medium text-center mb-2">
-                        {locale === 'th' ? 'แคลอรี่เฉลี่ยต่อมื้อ' : 
-                         locale === 'ja' ? '食事あたりの平均カロリー' : 
-                         locale === 'zh' ? '每餐平均卡路里' : 
-                         'Average Calories per Meal'}
-                      </h3>
-                      <ResponsiveContainer width="100%" height="85%">
-                        <BarChart data={mealDistributionData.byCalories}>
-                          <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                          <YAxis stroke="hsl(var(--muted-foreground))" />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                            formatter={(value: any) => [value, 'kcal']}
-                          />
-                          <Bar 
-                            dataKey="value" 
-                            name={locale === 'th' ? 'แคลอรี่' : locale === 'ja' ? 'カロリー' : locale === 'zh' ? '卡路里' : 'Calories'}
-                          >
-                            {mealDistributionData.byCalories.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+                    <div className="p-4 pt-0">
+                      <p className="text-xs text-center text-muted-foreground">
+                        {locale === 'th' ? 'ข้อมูลจาก' : locale === 'ja' ? 'データ期間：' : locale === 'zh' ? '数据基于' : 'Data based on'} {getTimeRangeLabel()}
+                      </p>
                     </div>
-                  </div>
-                  <div className="p-4 pt-0">
-                    <p className="text-xs text-center text-muted-foreground">
-                      {locale === 'th' ? 'ข้อมูลจาก' : locale === 'ja' ? 'データ期間：' : locale === 'zh' ? '数据基于' : 'Data based on'} {getTimeRangeLabel()}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </motion.div>
             
             {/* Top Foods */}
@@ -1111,27 +1298,63 @@ export default function StatsPage() {
                 <CardContent className="p-0 pt-2">
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={calorieTrendData}
-                                margin={{ top: 10, right: 20, bottom: 25, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" angle={-45} textAnchor="end" height={50} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                          itemStyle={{ color: 'hsl(var(--foreground))' }}
+                      <ComposedChart 
+                        data={calorieTrendData}
+                        margin={{ top: 10, right: 20, bottom: 25, left: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="trendBarGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS[0]} stopOpacity={0.9}/>
+                            <stop offset="100%" stopColor={COLORS[0]} stopOpacity={0.5}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="hsl(var(--muted-foreground))" 
+                          angle={-45} 
+                          textAnchor="end" 
+                          height={50}
+                          tickLine={false}
+                          axisLine={false}
                         />
-                        <Legend />
+                        <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip 
+                          contentStyle={TOOLTIPS.contentStyle}
+                          itemStyle={TOOLTIPS.itemStyle}
+                          labelStyle={TOOLTIPS.labelStyle}
+                          cursor={TOOLTIPS.cursor}
+                        />
+                        <Legend 
+                          iconType="circle" 
+                          iconSize={8}
+                          wrapperStyle={{ paddingTop: 10 }}
+                        />
                         <Bar 
                           dataKey="calories" 
-                          fill="hsl(var(--primary))" 
+                          fill="url(#trendBarGradient)"
+                          stroke={COLORS[0]}
+                          strokeWidth={BAR_STYLE.strokeWidth}
                           name={locale === 'th' ? 'แคลอรี่' : locale === 'ja' ? 'カロリー' : locale === 'zh' ? '卡路里' : 'Calories'} 
+                          radius={BAR_STYLE.radius}
+                          animationDuration={BAR_STYLE.animationDuration}
+                          animationEasing={BAR_STYLE.animationEasing}
                         />
                         <Line 
                           type="monotone" 
                           dataKey="goal" 
-                          stroke="hsl(var(--muted-foreground))" 
+                          stroke={COLORS[3]}
+                          strokeWidth={2}
                           strokeDasharray="5 5" 
+                          dot={false}
                           name={locale === 'th' ? 'เป้าหมาย' : locale === 'ja' ? '目標' : locale === 'zh' ? '目标' : 'Goal'} 
+                          animationDuration={1500}
+                          animationEasing="ease-out"
+                          animationBegin={300}
                         />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1274,69 +1497,106 @@ export default function StatsPage() {
           <TabsContent value="nutrition" className="mt-0 space-y-4">
             {/* Nutrient Radar Chart */}
             <motion.div variants={item}>
-              <Card className="overflow-hidden">
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-lg">
-                    {locale === 'th' ? 'เปรียบเทียบกับเป้าหมาย' : 
-                     locale === 'ja' ? '目標との比較' : 
-                     locale === 'zh' ? '目标对比' : 
-                     'Nutrient Goals Comparison'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="w-full md:w-3/5 h-[250px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={nutritionRadarData}>
-                          <PolarGrid stroke="hsl(var(--border))" />
-                          <PolarAngleAxis 
-                            dataKey="subject" 
-                            stroke="hsl(var(--foreground))"
-                            tick={{ fill: 'hsl(var(--foreground))' }}
-                          />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                          <Radar
-                            name={locale === 'th' ? 'ค่าเฉลี่ย' : 
-                                  locale === 'ja' ? '平均値' : 
-                                  locale === 'zh' ? '平均值' : 
-                                  'Average'}
-                            dataKey="value"
-                            stroke="hsl(var(--primary))"
-                            fill="hsl(var(--primary)/0.5)"
-                            fillOpacity={0.6}
-                          />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                            formatter={(value: any, name: string) => [`${value}%`, name]}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="w-full md:w-2/5 p-4 space-y-3">
-                      <p className="text-sm text-muted-foreground">
-                        {locale === 'th' ? 'เปรียบเทียบค่าเฉลี่ยประจำวันของคุณกับเป้าหมายที่แนะนำ' : 
-                         locale === 'ja' ? 'あなたの日次平均値を推奨目標と比較します' : 
-                         locale === 'zh' ? '将您的日平均值与推荐目标进行比较' : 
-                         'Comparing your daily averages with recommended targets'}
-                      </p>
-                      {nutritionRadarData.map((item, i) => (
-                        <div key={i} className="text-sm">
-                          <div className="flex justify-between mb-1">
-                            <span className="font-medium">{item.subject}</span>
-                            <span>{item.value}%</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-xs text-muted-foreground">
-                              {item.actual} / {item.recommended}
+              <motion.div
+                variants={cardHover}
+                initial="rest"
+                whileHover="hover"
+                className="h-full"
+              >
+                <Card className="overflow-hidden h-full">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-lg">
+                      {locale === 'th' ? 'เปรียบเทียบกับเป้าหมาย' : 
+                       locale === 'ja' ? '目標との比較' : 
+                       locale === 'zh' ? '目标对比' : 
+                       'Nutrient Goals Comparison'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col md:flex-row">
+                      <div className="w-full md:w-3/5 h-[250px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={nutritionRadarData}>
+                            <PolarGrid 
+                              stroke="hsl(var(--border))" 
+                              strokeOpacity={0.5}
+                              strokeDasharray="2 3"
+                            />
+                            <PolarAngleAxis 
+                              dataKey="subject" 
+                              stroke="hsl(var(--foreground))"
+                              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                              tickLine={false}
+                            />
+                            <PolarRadiusAxis 
+                              angle={30} 
+                              domain={[0, 100]} 
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                              tickCount={5}
+                              stroke="hsl(var(--border))"
+                              strokeOpacity={0.5}
+                              strokeDasharray="2 3"
+                            />
+                            <defs>
+                              <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={COLORS[0]} stopOpacity={0.9}/>
+                                <stop offset="100%" stopColor={COLORS[0]} stopOpacity={0.3}/>
+                              </linearGradient>
+                            </defs>
+                            <Radar
+                              name={locale === 'th' ? 'ค่าเฉลี่ย' : 
+                                    locale === 'ja' ? '平均値' : 
+                                    locale === 'zh' ? '平均值' : 
+                                    'Average'}
+                              dataKey="value"
+                              stroke={COLORS[0]}
+                              strokeWidth={2}
+                              fill="url(#radarGradient)"
+                              fillOpacity={0.7}
+                              animationDuration={1200}
+                              animationEasing="ease-out"
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                borderColor: 'hsl(var(--border))',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                              }}
+                              formatter={(value: any, name: string, props: any) => [
+                                `${value}% (${props.payload.actual}/${props.payload.recommended})`, 
+                                props.payload.subject
+                              ]}
+                            />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="w-full md:w-2/5 p-4 space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          {locale === 'th' ? 'เปรียบเทียบค่าเฉลี่ยประจำวันของคุณกับเป้าหมายที่แนะนำ' : 
+                           locale === 'ja' ? 'あなたの日次平均値を推奨目標と比較します' : 
+                           locale === 'zh' ? '将您的日平均值与推荐目标进行比较' : 
+                           'Comparing your daily averages with recommended targets'}
+                        </p>
+                        {nutritionRadarData.map((item, i) => (
+                          <div key={i} className="text-sm">
+                            <div className="flex justify-between mb-1">
+                              <span className="font-medium">{item.subject}</span>
+                              <span>{item.value}%</span>
                             </div>
-                            <Progress value={item.value} className="flex-1 h-2" />
+                            <div className="flex items-center gap-2">
+                              <div className="text-xs text-muted-foreground">
+                                {item.actual} / {item.recommended}
+                              </div>
+                              <Progress value={item.value} className="flex-1 h-2" />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </motion.div>
             
             {/* Macronutrient Balance */}
@@ -1353,39 +1613,84 @@ export default function StatsPage() {
                 <CardContent className="p-0 pt-2">
                   <div className="h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={macroBalanceData}
-                               margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                          formatter={(value: any) => [`${value}%`, '']}
+                      <AreaChart 
+                        data={macroBalanceData}
+                        margin={{ top: 10, right: 20, bottom: 20, left: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="areaProtein" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS[0]} stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor={COLORS[0]} stopOpacity={0.3}/>
+                          </linearGradient>
+                          <linearGradient id="areaFat" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS[1]} stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor={COLORS[1]} stopOpacity={0.3}/>
+                          </linearGradient>
+                          <linearGradient id="areaCarbs" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS[2]} stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor={COLORS[2]} stopOpacity={0.3}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="hsl(var(--muted-foreground))"
+                          tickLine={false}
+                          axisLine={false}
                         />
-                        <Legend />
+                        <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          tickLine={false}
+                          axisLine={false}
+                          domain={[0, 100]}
+                          tickFormatter={(value) => `${value}%`}
+                        />
+                        <Tooltip 
+                          contentStyle={TOOLTIPS.contentStyle}
+                          itemStyle={TOOLTIPS.itemStyle}
+                          labelStyle={TOOLTIPS.labelStyle}
+                          formatter={(value: any) => [`${value}%`, '']}
+                          cursor={TOOLTIPS.cursor}
+                        />
+                        <Legend 
+                          iconType="circle"
+                          iconSize={8}
+                          wrapperStyle={{ paddingTop: 10 }}
+                        />
                         <Area 
                           type="monotone" 
                           dataKey="protein" 
                           stackId="1"
-                          stroke="hsl(var(--primary))" 
-                          fill="hsl(var(--primary))" 
+                          stroke={COLORS[0]} 
+                          strokeWidth={2}
+                          fill="url(#areaProtein)" 
                           name={locale === 'th' ? 'โปรตีน' : locale === 'ja' ? 'タンパク質' : locale === 'zh' ? '蛋白质' : 'Protein'} 
+                          animationDuration={1500}
+                          animationEasing="ease-out"
                         />
                         <Area 
                           type="monotone" 
                           dataKey="fat" 
                           stackId="1"
-                          stroke="hsl(var(--secondary))" 
-                          fill="hsl(var(--secondary))" 
+                          stroke={COLORS[1]} 
+                          strokeWidth={2}
+                          fill="url(#areaFat)" 
                           name={locale === 'th' ? 'ไขมัน' : locale === 'ja' ? '脂肪' : locale === 'zh' ? '脂肪' : 'Fat'} 
+                          animationDuration={1500}
+                          animationEasing="ease-out"
+                          animationBegin={100}
                         />
                         <Area 
                           type="monotone" 
                           dataKey="carbs" 
                           stackId="1"
-                          stroke="hsl(var(--accent))" 
-                          fill="hsl(var(--accent))" 
+                          stroke={COLORS[2]} 
+                          strokeWidth={2}
+                          fill="url(#areaCarbs)" 
                           name={locale === 'th' ? 'คาร์โบไฮเดรต' : locale === 'ja' ? '炭水化物' : locale === 'zh' ? '碳水化合物' : 'Carbs'} 
+                          animationDuration={1500}
+                          animationEasing="ease-out"
+                          animationBegin={200}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
