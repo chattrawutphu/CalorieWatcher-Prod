@@ -4,23 +4,21 @@ import React, { useEffect, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 
-// ลดเวลาในอนิเมชันลงอีกเพื่อให้ UI ตอบสนองเร็วขึ้น
+// ลดการเคลื่อนไหวให้น้อยลงและเร็วขึ้นอีก เน้นที่ opacity มากกว่า
 const variants = {
-  hidden: { opacity: 0, y: 3 }, // ลดระยะการเคลื่อนไหวจาก 5px เป็น 3px
+  hidden: { opacity: 0 }, // ตัด y เพื่อลดการคำนวณ transform
   enter: { 
-    opacity: 1, 
-    y: 0,
+    opacity: 1,
     transition: { 
-      duration: 0.1, // ลดจาก 0.15 เป็น 0.1 ให้เร็วขึ้น
-      ease: "easeOut" // เปลี่ยนจาก easeInOut เป็น easeOut เพื่อให้ดูเร็วขึ้น
+      duration: 0.08, // ลดลงอีกจาก 0.1
+      ease: "easeOut"
     } 
   },
   exit: { 
     opacity: 0,
-    y: 3, // ลดระยะการเคลื่อนไหวจาก 5px เป็น 3px
     transition: { 
-      duration: 0.05, // ลดจาก 0.1 เป็น 0.05 ให้เร็วขึ้น
-      ease: "easeIn" // เปลี่ยนจาก easeInOut เป็น easeIn เพื่อให้ดูเร็วขึ้น
+      duration: 0.04, // ลดลงอีกจาก 0.05
+      ease: "easeIn"
     } 
   }
 };
@@ -34,7 +32,6 @@ export default memo(function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const [isFirstRender, setIsFirstRender] = useState(true);
   const [isRouteChanging, setIsRouteChanging] = useState(false);
-  const router = useRouter();
   
   // Désactiver l'animation au premier rendu
   useEffect(() => {
@@ -45,24 +42,21 @@ export default memo(function PageTransition({ children }: PageTransitionProps) {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     
-    // ใช้ requestAnimationFrame แทน setTimeout เพื่อให้ทำงานเร็วขึ้น
+    // ยกเลิกสถานะโหลดเร็วขึ้น
     const handleComplete = () => {
-      // ยกเลิกสถานะโหลดผ่าน requestAnimationFrame เพื่อให้ตรงกับ frame rate ของอุปกรณ์
-      requestAnimationFrame(() => {
-        setIsRouteChanging(false);
-      });
+      setIsRouteChanging(false);
     };
 
     // ตั้งค่า isRouteChanging ให้เร็วที่สุด
     setIsRouteChanging(true);
-    timeout = setTimeout(handleComplete, 30); // ลดจาก 50ms เป็น 30ms
+    timeout = setTimeout(handleComplete, 20); // ลดลงจาก 30ms
     
     return () => {
       clearTimeout(timeout);
     };
   }, [pathname]);
 
-  // ปรับการ key ให้มีประสิทธิภาพมากขึ้น
+  // ปรับการ key ให้มีประสิทธิภาพมากขึ้น - ใช้ path แรกเท่านั้น
   const pageKey = pathname.split('/')[1] || 'home';
   
   // ไม่ใช้อนิเมชันเลยเมื่อเป็นการเรนเดอร์ครั้งแรก เพื่อให้หน้าแรกโหลดเร็ว
@@ -70,7 +64,6 @@ export default memo(function PageTransition({ children }: PageTransitionProps) {
   
   return (
     <>
-      {/* ปรับการเปลี่ยนหน้าให้เร็วขึ้น */}
       <AnimatePresence mode="wait">
         <motion.div
           key={pageKey}
@@ -79,7 +72,7 @@ export default memo(function PageTransition({ children }: PageTransitionProps) {
           exit={shouldUseAnimation ? "exit" : undefined}
           variants={variants}
           className="flex-1 w-full"
-          style={{ touchAction: "manipulation" }} // เพิ่ม touch-action: manipulation
+          style={{ touchAction: "manipulation" }}
         >
           {children}
         </motion.div>

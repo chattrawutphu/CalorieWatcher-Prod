@@ -62,9 +62,6 @@ export const MobileNav = memo(function MobileNav() {
   const { locale } = useLanguage();
   const t = aiAssistantTranslations[locale];
   
-  // Track whether animations should play
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-  
   // Track which button is currently animating
   const [animatingButton, setAnimatingButton] = useState<string | null>(null);
   
@@ -72,15 +69,6 @@ export const MobileNav = memo(function MobileNav() {
   const [touchStartTime, setTouchStartTime] = useState(0);
   const [touchStartPos, setTouchStartPos] = useState({ x: 0, y: 0 });
   const [isTouching, setIsTouching] = useState(false);
-
-  // Check animation status when component loads
-  useEffect(() => {
-    const hasAnimated = sessionStorage.getItem("nav_animated") === "true";
-    setShouldAnimate(!hasAnimated);
-    if (!hasAnimated) {
-      sessionStorage.setItem("nav_animated", "true");
-    }
-  }, []);
 
   // Handle touch events
   const handleTouchStart = useCallback((e: React.TouchEvent, href: string) => {
@@ -292,16 +280,13 @@ export const MobileNav = memo(function MobileNav() {
         />
       )}
       
-      <nav className="fixed bottom-0 left-0 z-50 w-full">
+      <nav className="fixed bottom-0 left-0 z-50 w-full visibility-visible">
         <div className="mx-auto sm:px-6 px-2">
-          <motion.div
-            variants={navContainer}
-            initial={shouldAnimate ? "hidden" : "show"}
-            animate="show"
+          <div
             className="flex pb-6 pt-0 items-center justify-around bg-[hsl(var(--background))] bg-opacity-90 backdrop-blur-md sm:rounded-t-xl rounded-t-lg sm:border border-b-0 border-x-0 sm:border-x sm:border-t border-[hsl(var(--border))] shadow-lg max-w-md mx-auto"
           >
             {navElements}
-          </motion.div>
+          </div>
         </div>
       </nav>
     </>

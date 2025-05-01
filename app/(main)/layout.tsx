@@ -22,7 +22,6 @@ export default memo(function MainLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
-  const [mainContentReady, setMainContentReady] = useState(false);
   
   const { locale } = useLanguage();
   
@@ -35,19 +34,20 @@ export default memo(function MainLayout({
   // เมื่อเริ่มต้นแอพหรือเมื่อรีเฟรช ให้โหลดข้อมูลจาก localStorage และซิงค์ข้อมูลจาก API
   useEffect(() => {
     if (status === "authenticated") {
+      // ไม่ต้องมี setMainContentReady แล้ว เพราะเราแสดง MobileNav แล้ว
+      
       // ใช้ Promise.resolve() เพื่อให้เรียกใช้นอก callstack หลัก และไม่บล็อกการเรนเดอร์
       Promise.resolve().then(async () => {
-        // ทำให้เนื้อหาพร้อมก่อน แล้วค่อยเริ่มโหลดข้อมูล
-        setMainContentReady(true);
+        // โหลดข้อมูลแบบพื้นฐานก่อน
         await initializeData();
         
         // ตรวจสอบว่าเป็นการโหลดหน้าใหม่หรือการรีเฟรช (ไม่ใช่การเปลี่ยนหน้าภายในแอพ)
         const isNewPageLoad = !sessionStorage.getItem('app-initialized');
         sessionStorage.setItem('app-initialized', 'true');
         
-        // ซิงค์ข้อมูลเมื่อเป็นการโหลดหน้าใหม่หรือรีเฟรช
+        // ซิงค์ข้อมูลเมื่อเป็นการโหลดหน้าใหม่หรือรีเฟรช แต่ใช้เวลาน้อยลง
         if (isNewPageLoad && canSync()) {
-          // เพิ่มเวลาดีเลย์ให้นานขึ้นเพื่อให้หน้าจอโหลดเสร็จก่อน
+          // ลดเวลาดีเลย์ลงเพื่อให้ข้อมูลพร้อมเร็วขึ้น
           setTimeout(async () => {
             try {
               await syncData();
@@ -57,7 +57,7 @@ export default memo(function MainLayout({
             } catch (error) {
               console.error('Failed to sync data on app load/refresh:', error);
             }
-          }, 2000); // 2 วินาที หลังจากโหลดหน้า
+          }, 500); // ลดจาก 2000ms เหลือ 500ms
         }
       });
     }
@@ -124,7 +124,6 @@ export default memo(function MainLayout({
   useEffect(() => {
     if (status !== 'loading') {
       setIsLoading(false);
-      setMainContentReady(true); // ทำให้แสดง MobileNav ได้เร็วขึ้น
     }
   }, [status]);
 
@@ -132,9 +131,9 @@ export default memo(function MainLayout({
   const prefetchRoutes = useCallback(() => {
     // หน้าหลักที่ควร prefetch ตลอดเวลา
     const mainRoutes = ['/dashboard', '/history', '/meals', '/settings'];
-    mainRoutes.forEach(route => {
-      router.prefetch(route);
-    });
+    
+    // ใช้ Promise.all เพื่อทำ prefetch พร้อมกันแบบขนาน
+    Promise.all(mainRoutes.map(route => router.prefetch(route)));
     
     // Prefetch เฉพาะหน้าที่น่าจะไปต่อเท่านั้น
     if (pathname === '/dashboard') {
@@ -297,8 +296,8 @@ export default memo(function MainLayout({
           </PullToRefresh>
         </main>
         
-        {/* รอให้เนื้อหาหลักพร้อมก่อนแสดง MobileNav */}
-        {mainContentReady && <MobileNav />}
+        {/* แสดง MobileNav ตั้งแต่เริ่มต้นเลย ไม่ต้องรอ mainContentReady */}
+        <MobileNav />
       </div>
     </SessionRefresher>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,29 @@ import { useNutritionStore } from "@/lib/store/nutrition-store";
 import { format, addDays, subDays, startOfWeek, endOfWeek, addMonths, subMonths, parse, isSameDay, getMonth, getYear, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isYesterday, isTomorrow } from "date-fns";
 import { th, ja, zhCN } from "date-fns/locale";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from '@/components/ui/use-toast';
 import { WaterTracker } from "@/components/ui/water-tracker";
 import { WeightTracker } from "@/components/ui/weight-tracker";
 import { AnalyticsWidget } from "@/components/ui/analytics-widget";
-import { useToast } from '@/components/ui/use-toast';
+
+// สร้าง components wrappers ที่เป็น default export
+const WaterTrackerWrapper = lazy(() => 
+  import("@/components/ui/water-tracker").then(mod => ({ 
+    default: (props: any) => <WaterTracker {...props} /> 
+  }))
+);
+
+const WeightTrackerWrapper = lazy(() => 
+  import("@/components/ui/weight-tracker").then(mod => ({ 
+    default: (props: any) => <WeightTracker {...props} /> 
+  }))
+);
+
+const AnalyticsWidgetWrapper = lazy(() => 
+  import("@/components/ui/analytics-widget").then(mod => ({ 
+    default: (props: any) => <AnalyticsWidget {...props} /> 
+  }))
+);
 
 // Import dnd-kit
 import { 
@@ -55,26 +74,26 @@ const WIDGET_TYPES = {
   CALENDAR: { icon: <CalendarIcon className="h-5 w-5" />, color: "bg-indigo-500" }
 };
 
-// Animation variants
+// ปรับ animation variants ให้เร็วขึ้น
 const container = {
   hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      duration: 0.3,
+      staggerChildren: 0.02, // ลดจาก 0.05
+      duration: 0.2, // ลดจาก 0.3
       ease: "easeOut"
     }
   }
 };
 
 const item = {
-  hidden: { y: 10, opacity: 1 },
+  hidden: { y: 5, opacity: 1 }, // ลด y จาก 10 เป็น 5
   show: { 
     y: 0, 
     opacity: 1,
     transition: {
-      duration: 0.2,
+      duration: 0.15, // ลดจาก 0.2
       ease: "easeOut"
     }
   }
@@ -177,22 +196,8 @@ const DAYS_OF_WEEK_TH = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "
 const DAYS_OF_WEEK_JA = ["日", "月", "火", "水", "木", "金", "土"];
 const DAYS_OF_WEEK_ZH = ["日", "一", "二", "三", "四", "五", "六"];
 
-// Mood emoji component
-const MoodEmoji = ({ rating, selected, onClick }: { rating: number, selected: boolean, onClick: () => void }) => {
-  const emojis = ["😖", "😔", "😐", "😊", "😁"];
-  return (
-    <button 
-      onClick={onClick}
-      className={`text-2xl sm:text-xl transition-all ${selected ? 'transform scale-125' : 'opacity-50'}`}
-      aria-label={`Mood rating ${rating}`}
-    >
-      {emojis[rating - 1]}
-    </button>
-  );
-};
-
-// Calendar popup component
-const CalendarPopup = ({ 
+// ใช้ React.memo สำหรับ CalendarPopup เพื่อลดการ re-render
+const CalendarPopup = React.memo(({ 
   isOpen, 
   onClose, 
   selectedDate, 
@@ -446,7 +451,29 @@ const CalendarPopup = ({
       )}
     </AnimatePresence>
   );
-};
+});
+
+// ใช้ React.memo สำหรับ MoodEmoji เพื่อลดการ re-render
+const MoodEmoji = React.memo(({ 
+  rating, 
+  selected, 
+  onClick 
+}: { 
+  rating: number, 
+  selected: boolean, 
+  onClick: () => void 
+}) => {
+  const emojis = ["😖", "😔", "😐", "😊", "😁"];
+  return (
+    <button 
+      onClick={onClick}
+      className={`text-2xl sm:text-xl transition-all ${selected ? 'transform scale-125' : 'opacity-50'}`}
+      aria-label={`Mood rating ${rating}`}
+    >
+      {emojis[rating - 1]}
+    </button>
+  );
+});
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -964,6 +991,11 @@ export default function DashboardPage() {
       document.body.classList.remove('scroll-lock');
     };
   }, []);
+
+  // แสดง placeholder ขณะ lazy loading
+  const LoadingPlaceholder = () => (
+    <div className="animate-pulse bg-[hsl(var(--muted))] h-[200px] rounded-2xl"></div>
+  );
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-32">
@@ -1492,25 +1524,31 @@ export default function DashboardPage() {
             case 'waterTracker':
               return widgetVisibility.waterTracker && (
                 <motion.div key="waterTracker" variants={item} className="mt-1">
-          <WaterTracker date={selectedDate} />
-        </motion.div>
+                  <Suspense fallback={<LoadingPlaceholder />}>
+                    <WaterTrackerWrapper date={selectedDate} />
+                  </Suspense>
+                </motion.div>
               );
             case 'weightTracker':
               return widgetVisibility.weightTracker && (
                 <motion.div key="weightTracker" variants={item} className="mt-1">
-          <WeightTracker date={selectedDate} />
-        </motion.div>
+                  <Suspense fallback={<LoadingPlaceholder />}>
+                    <WeightTrackerWrapper date={selectedDate} />
+                  </Suspense>
+                </motion.div>
               );
             case 'analyticsWidget':
               return widgetVisibility.analyticsWidget && (
                 <motion.div key="analyticsWidget" variants={item} className="mt-1">
-            <AnalyticsWidget 
-              dailyLogs={dailyLogs} 
-              goals={goals} 
-              graphType={selectedGraphType}
-              onGraphTypeChange={setSelectedGraphType}
-            />
-          </motion.div>
+                  <Suspense fallback={<LoadingPlaceholder />}>
+                    <AnalyticsWidgetWrapper 
+                      dailyLogs={dailyLogs} 
+                      goals={goals} 
+                      graphType={selectedGraphType}
+                      onGraphTypeChange={setSelectedGraphType}
+                    />
+                  </Suspense>
+                </motion.div>
               );
             case 'moodNotes':
               return widgetVisibility.moodNotes && (
