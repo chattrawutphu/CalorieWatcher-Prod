@@ -113,8 +113,11 @@ const COLORS = {
 };
 
 // Calculate analytics data with some nice animated effects
-const getAnalyticsData = (metric: string, period: string, dailyLogs: any, goals: any, getDateLocale: () => any) => {
-  const today = new Date();
+const getAnalyticsData = (metric: string, period: string, dailyLogs: any, goals: any, getDateLocale: () => any, selectedDate?: string) => {
+  // ใช้วันที่ที่กำหนดหรือวันที่ปัจจุบันถ้าไม่ได้กำหนด
+  const today = selectedDate ? new Date(selectedDate) : new Date();
+  console.log("getAnalyticsData", { metric, period, selectedDate, today: today.toISOString() });
+  
   let dates: Date[] = [];
   let labels: string[] = [];
   
@@ -122,7 +125,7 @@ const getAnalyticsData = (metric: string, period: string, dailyLogs: any, goals:
   if (period === "7d") {
     // Last 7 days
     for (let i = 6; i >= 0; i--) {
-      const date = new Date();
+      const date = new Date(today);
       date.setDate(today.getDate() - i);
       dates.push(date);
       labels.push(format(date, 'EEE', { locale: getDateLocale() }));
@@ -130,7 +133,7 @@ const getAnalyticsData = (metric: string, period: string, dailyLogs: any, goals:
   } else if (period === "4w") {
     // Last 4 weeks
     for (let i = 3; i >= 0; i--) {
-      const date = new Date();
+      const date = new Date(today);
       date.setDate(today.getDate() - (i * 7));
       dates.push(date);
       labels.push(format(date, 'MMM d', { locale: getDateLocale() }));
@@ -138,7 +141,7 @@ const getAnalyticsData = (metric: string, period: string, dailyLogs: any, goals:
   } else if (period === "12m") {
     // Last 12 months
     for (let i = 11; i >= 0; i--) {
-      const date = new Date();
+      const date = new Date(today);
       date.setMonth(today.getMonth() - i);
       dates.push(date);
       labels.push(format(date, 'MMM', { locale: getDateLocale() }));
@@ -208,6 +211,8 @@ const getAnalyticsData = (metric: string, period: string, dailyLogs: any, goals:
     };
   });
   
+  // ลบการสร้างข้อมูลจำลอง ใช้เฉพาะข้อมูลจริง
+  // ไม่ต้องเพิ่มข้อมูลจำลองใดๆ แม้ข้อมูลจะมีน้อยเกินไปก็ตาม
   return data;
 };
 
@@ -223,9 +228,10 @@ interface AnalyticsWidgetProps {
   };
   graphType: "nutrients" | "water" | "weight";
   onGraphTypeChange?: (type: "nutrients" | "water" | "weight") => void;
+  selectedDate?: string;
 }
 
-export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goals, graphType, onGraphTypeChange }) => {
+export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goals, graphType, onGraphTypeChange, selectedDate }) => {
   const { locale } = useLanguage();
   
   // Analytics state
@@ -254,14 +260,17 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
   };
   
   // Get weight chart data - moved outside memo to fix initialization issue
-  const getWeightData = (period: string, dailyLogs: any, goals: any, getDateLocale: () => any) => {
+  const getWeightData = (period: string, dailyLogs: any, goals: any, getDateLocale: () => any, selectedDate?: string) => {
     // Get weight history here inside the function
     const { weightHistory = [] } = useNutritionStore.getState();
     
     // If no weight entries, return empty array
     if (weightHistory.length === 0) return [];
     
-    const today = new Date();
+    // ใช้วันที่ที่กำหนดหรือวันที่ปัจจุบันถ้าไม่ได้กำหนด
+    const today = selectedDate ? new Date(selectedDate) : new Date();
+    console.log("getWeightData", { period, selectedDate, today: today.toISOString(), weightEntriesCount: weightHistory.length });
+    
     let filteredEntries = [...weightHistory];
     let dates: Date[] = [];
     let labels: string[] = [];
@@ -277,7 +286,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
       
       // Generate dates for the last 7 days
       for (let i = 6; i >= 0; i--) {
-        const date = new Date();
+        const date = new Date(today);
         date.setDate(today.getDate() - i);
         dates.push(date);
         labels.push(format(date, 'EEE', { locale: getDateLocale() }));
@@ -295,7 +304,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
       const step = Math.max(1, Math.floor(days / 7)); // Show around 7 labels
       
       for (let i = days - 1; i >= 0; i -= step) {
-        const date = new Date();
+        const date = new Date(today);
         date.setDate(today.getDate() - i);
         dates.push(date);
         labels.push(format(date, 'MMM d', { locale: getDateLocale() }));
@@ -316,7 +325,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
       // Generate dates for the last 12 months
       if (period === "12m") {
         for (let i = 11; i >= 0; i--) {
-          const date = new Date();
+          const date = new Date(today);
           date.setMonth(today.getMonth() - i);
           dates.push(date);
           labels.push(format(date, 'MMM', { locale: getDateLocale() }));
@@ -324,7 +333,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
       } else {
         // For 365 days, show monthly markers
         for (let i = 12; i >= 0; i--) {
-          const date = new Date();
+          const date = new Date(today);
           date.setDate(today.getDate() - (i * 30));
           dates.push(date);
           labels.push(format(date, 'MMM', { locale: getDateLocale() }));
@@ -340,7 +349,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
       
       // Generate dates for 6 months with monthly markers
       for (let i = 6; i >= 0; i--) {
-        const date = new Date();
+        const date = new Date(today);
         date.setDate(today.getDate() - (i * 30));
         dates.push(date);
         labels.push(format(date, 'MMM d', { locale: getDateLocale() }));
@@ -402,19 +411,41 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
       };
     });
     
+    // ลบการสร้างข้อมูลจำลอง
+    // ไม่ต้องเพิ่มข้อมูลจำลองใดๆ แม้ข้อมูลจะมีน้อยเกินไปก็ตาม
     return data;
   };
   
   // Get chart data for current selections - use memoized version to avoid recalculations
   const chartData = React.useMemo(() => {
+    // log ข้อมูลเพื่อ debug
+    console.log("Analytics Widget Data:", { 
+      currentGraphType, 
+      currentMetric, 
+      currentPeriod, 
+      weightPeriod,
+      selectedDate,
+      hasLogs: Object.keys(dailyLogs).length > 0,
+      goals 
+    });
+    
+    let data;
     if (currentGraphType === "weight") {
       // Get weight data - use weightPeriod for weight data
-      return getWeightData(weightPeriod, dailyLogs, goals, getDateLocale);
+      data = getWeightData(weightPeriod, dailyLogs, goals, getDateLocale, selectedDate);
     } else {
       // Get regular analytics data
-      return getAnalyticsData(currentMetric, currentPeriod, dailyLogs, goals, getDateLocale);
+      data = getAnalyticsData(currentMetric, currentPeriod, dailyLogs, goals, getDateLocale, selectedDate);
     }
-  }, [currentMetric, currentPeriod, weightPeriod, dailyLogs, goals, locale, currentGraphType]);
+    
+    // ตรวจสอบว่ามีข้อมูลจริงหรือไม่
+    if (!data || data.length === 0 || data.every(item => item.value === 0)) {
+      console.log("No valid data found for this period");
+      return [];
+    }
+    
+    return data;
+  }, [currentMetric, currentPeriod, weightPeriod, dailyLogs, goals, locale, currentGraphType, selectedDate]);
   
   // Get translations for metrics
   const getMetricTranslation = (key: string) => {
@@ -716,117 +747,123 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
         <div 
           className="h-60 w-full relative overflow-hidden rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-2"
         >
-          <AnimatePresence custom={chartDirection} mode="popLayout">
-            <motion.div
-              key={currentMetric + currentPeriod}
-              custom={chartDirection}
-              variants={chartContainerVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="absolute inset-0"
-            >
-              {/* Visual goal indicator */}
-              {chartData.length > 0 && (
-                <div 
-                  className="absolute right-12 h-full w-px bg-[hsl(var(--muted))]/90 z-10 pointer-events-none"
-                  style={{
-                    height: '70%',
-                    top: '15%'
-                  }}
-                />
-              )}
-              
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 20, right: 10, left: -10, bottom: 20 }}
-                  barGap={2}
-                  barSize={currentPeriod === '12m' ? 12 : currentPeriod === '4w' ? 20 : 30}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 500 }}
-                    tickMargin={8}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(value) => value === 0 ? '' : value.toString()}
-                    width={30}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => {
-                      return [
-                        `${Math.round(value)} ${getMetricUnit(currentMetric)}`,
-                        getMetricTranslation(currentMetric)
-                      ] as [string, string];
+          {chartData.length === 0 ? (
+            <div className="absolute inset-0 flex items-center justify-center text-sm text-[hsl(var(--muted-foreground))]">
+              ไม่มีข้อมูลสำหรับช่วงเวลานี้
+            </div>
+          ) : (
+            <AnimatePresence custom={chartDirection} mode="popLayout">
+              <motion.div
+                key={currentMetric + currentPeriod}
+                custom={chartDirection}
+                variants={chartContainerVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0"
+              >
+                {/* Visual goal indicator */}
+                {chartData.length > 0 && (
+                  <div 
+                    className="absolute right-12 h-full w-px bg-[hsl(var(--muted))]/90 z-10 pointer-events-none"
+                    style={{
+                      height: '70%',
+                      top: '15%'
                     }}
-                    labelFormatter={(name, payload) => {
-                      if (payload && payload.length > 0) {
-                        const date = payload[0].payload.date;
-                        return format(parse(date, 'yyyy-MM-dd', new Date()), 'EEEE, MMMM d', { locale: getDateLocale() });
-                      }
-                      return name;
-                    }}
-                    contentStyle={{ 
-                      borderRadius: '12px', 
-                      border: 'none', 
-                      boxShadow: '0px 4px 20px hsl(var(--foreground)/0.05)',
-                      backgroundColor: 'hsl(var(--background))',
-                      color: 'hsl(var(--foreground))',
-                      padding: '8px 12px'
-                    }}
-                    trigger="click"
                   />
-                  {/* Reference Line for Goal */}
-                  {chartData.length > 0 && chartData[0].goal > 0 && (
-                    <ReferenceLine 
-                      y={chartData[0].goal} 
-                      stroke="hsl(var(--primary))"
-                      strokeDasharray="3 3"
-                      strokeWidth={2}
-                      opacity={0.7}
-                      label={{
-                        value: `${getMetricTranslation("goal")}: ${chartData[0].goal}${getMetricUnit(currentMetric)}`,
-                        fill: "hsl(var(--primary))",
-                        fontSize: 10,
-                        position: 'right'
-                      }}
-                    />
-                  )}
-                  <defs>
-                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                    </linearGradient>
-                  </defs>
-                  <Bar 
-                    dataKey="value" 
-                    fill="url(#barGradient)"
-                    radius={[4, 4, 0, 0]}
-                    animationDuration={1000}
-                    animationEasing="ease-out"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={1}
+                )}
+                
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 20, right: 10, left: -10, bottom: 20 }}
+                    barGap={2}
+                    barSize={currentPeriod === '12m' ? 12 : currentPeriod === '4w' ? 20 : 30}
                   >
-                    {chartData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`}
-                        fill="url(#barGradient)"
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 500 }}
+                      tickMargin={8}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(value) => value === 0 ? '' : value.toString()}
+                      width={30}
+                    />
+                    <Tooltip
+                      formatter={(value: number) => {
+                        return [
+                          `${Math.round(value)} ${currentMetric === 'water' ? 'ml' : getMetricUnit(currentMetric)}`,
+                          getMetricTranslation(currentMetric)
+                        ] as [string, string];
+                      }}
+                      labelFormatter={(name, payload) => {
+                        if (payload && payload.length > 0) {
+                          const date = payload[0].payload.date;
+                          return format(parse(date, 'yyyy-MM-dd', new Date()), 'EEEE, MMMM d', { locale: getDateLocale() });
+                        }
+                        return name;
+                      }}
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        boxShadow: '0px 4px 20px hsl(var(--foreground)/0.05)',
+                        backgroundColor: 'hsl(var(--background))',
+                        color: 'hsl(var(--foreground))',
+                        padding: '8px 12px'
+                      }}
+                      trigger="click"
+                    />
+                    {/* Reference Line for Goal */}
+                    {chartData.length > 0 && chartData[0].goal > 0 && (
+                      <ReferenceLine 
+                        y={chartData[0].goal} 
                         stroke="hsl(var(--primary))"
-                        strokeWidth={0.5}
+                        strokeDasharray="3 3"
+                        strokeWidth={2}
+                        opacity={0.7}
+                        label={{
+                          value: `${getMetricTranslation("goal")}: ${chartData[0].goal}${currentMetric === 'water' ? ' ml' : getMetricUnit(currentMetric)}`,
+                          fill: "hsl(var(--primary))",
+                          fontSize: 10,
+                          position: 'right'
+                        }}
                       />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </motion.div>
-          </AnimatePresence>
+                    )}
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                      </linearGradient>
+                    </defs>
+                    <Bar 
+                      dataKey="value" 
+                      fill="url(#barGradient)"
+                      radius={[4, 4, 0, 0]}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={1}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`}
+                          fill="url(#barGradient)"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={0.5}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
 
         {/* Metric Pills - Only show for nutrients */}
@@ -869,49 +906,46 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
           transition={{ delay: 0.5 }}
           className="flex justify-between items-center pt-1 px-1"
         >
-          <div className="flex flex-col">
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">
-              {getMetricTranslation("average")}
-            </span>
-            <span className="font-semibold text-sm text-[hsl(var(--foreground))]">
-              {Math.round(chartData.reduce((sum, item) => sum + item.value, 0) / Math.max(1, chartData.length))} {getMetricUnit(currentMetric)}
-            </span>
-          </div>
+          {/* แสดง Average เฉพาะกรณีที่ไม่ใช่กราฟน้ำหนัก และมีข้อมูล */}
+          {currentGraphType !== "weight" && chartData.length > 0 && (
+            <div className="flex flex-col">
+              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                {getMetricTranslation("average")}
+              </span>
+              <span className="font-semibold text-sm text-[hsl(var(--foreground))]">
+                {currentGraphType === "water" 
+                  // สำหรับน้ำ ใช้หน่วย ml และคำนวณเฉลี่ยจาก water ไม่ใช่ calories
+                  ? `${Math.round(chartData.reduce((sum, item) => sum + item.value, 0) / Math.max(1, chartData.length))} ml`
+                  // สำหรับโภชนาการ ใช้ค่าและหน่วยของ metric ปัจจุบัน
+                  : `${Math.round(chartData.reduce((sum, item) => sum + item.value, 0) / Math.max(1, chartData.length))} ${getMetricUnit(currentMetric)}`
+                }
+              </span>
+            </div>
+          )}
           
-          <div className="flex flex-col items-end">
+          {/* แสดง Goal */}
+          <div className={`flex flex-col ${currentGraphType === "weight" || chartData.length === 0 ? "w-full" : "items-end"}`}>
             <span className="text-xs text-[hsl(var(--muted-foreground))]">
               {getMetricTranslation("goal")}
             </span>
             <span className="font-semibold text-sm text-[hsl(var(--foreground))]">
-              {chartData.length > 0 ? chartData[0].goal : 0} {getMetricUnit(currentMetric)}
+              {chartData.length > 0 
+                ? currentGraphType === "water" 
+                  ? `${chartData[0].goal} ml` 
+                  : `${chartData[0].goal} ${getMetricUnit(currentMetric)}`
+                : currentGraphType === "water"
+                  ? `${goals.water || 2000} ml`
+                  : currentGraphType === "weight"
+                    ? `${goals.weight || 70} ${getMetricUnit("weight")}`
+                    : `${currentMetric === "calories" ? goals.calories || 2000 : 
+                        currentMetric === "protein" ? Math.round(((goals.protein || 30) / 100) * (goals.calories || 2000) / 4) :
+                        currentMetric === "fat" ? Math.round(((goals.fat || 30) / 100) * (goals.calories || 2000) / 9) : 
+                        Math.round(((goals.carbs || 40) / 100) * (goals.calories || 2000) / 4)
+                      } ${getMetricUnit(currentMetric)}`
+              }
             </span>
           </div>
         </motion.div>
-        
-        {/* Progress Indicator */}
-        {chartData.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-1 px-1"
-          >
-            <div className="text-xs text-[hsl(var(--muted-foreground))] mb-1 flex justify-between">
-              <span>{getMetricTranslation("progress")}</span>
-              <span>
-                {Math.min(100, Math.round((chartData[chartData.length-1].value / chartData[0].goal) * 100))}%
-              </span>
-            </div>
-            <div className="h-2 w-full bg-[hsl(var(--muted))] rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, Math.round((chartData[chartData.length-1].value / chartData[0].goal) * 100))}%` }}
-                transition={{ delay: 0.8, duration: 1, ease: "easeOut" }}
-                className="h-full rounded-full bg-[hsl(var(--primary))]"
-              />
-            </div>
-          </motion.div>
-        )}
       </div>
     </Card>
   );
