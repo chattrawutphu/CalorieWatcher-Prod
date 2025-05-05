@@ -2057,51 +2057,8 @@ html.transition *:after {
   }
 }
 
-/* ScrollLock utility classes */
-.scroll-lock {
-  overflow: hidden !important;
-  position: fixed;
-  width: 100%;
-  overscroll-behavior: none;
-  touch-action: none;
-  height: 100%;
-  inset: 0;
-}
-
-.scroll-lock-popup {
-  overflow: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-  max-height: 90vh;
-}
-
-/* ทำให้แน่ใจว่า popup ยังคง scroll ได้ */
-.scroll-lock-container {
-  max-height: 100%;
-  overflow: hidden;
-  position: relative;
-  touch-action: none;
-}
-
-/* ทำให้ modal แสดงผลถูกต้องบน iOS */
-@supports (-webkit-touch-callout: none) {
-  .scroll-lock {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-  }
-}
-
-
-
 /* สำหรับการจัดการ main container */
-main.no-scroll {
-  overflow: hidden !important;
-  position: relative;
-  touch-action: none;
-  overscroll-behavior: none;
-}
+/* ลบ main.no-scroll ที่เหลือออก */
 
 /* Add exit animation for bottom sheet */
 .bottom-sheet-container.exit-animation {

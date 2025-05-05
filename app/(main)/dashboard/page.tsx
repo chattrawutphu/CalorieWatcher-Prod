@@ -217,14 +217,7 @@ const CalendarPopup = React.memo(({
     // Set the current month to the month of the selected date when opening
     if (isOpen) {
       setCurrentMonthDate(parse(selectedDate, 'yyyy-MM-dd', new Date()));
-      // ใช้ scroll-lock class แทน overflow-hidden
-      document.body.classList.add('scroll-lock');
     }
-
-    return () => {
-      // ใช้ scroll-lock class แทน overflow-hidden
-      document.body.classList.remove('scroll-lock');
-    };
   }, [isOpen, selectedDate]);
 
   // Get date locale based on app language
@@ -267,7 +260,6 @@ const CalendarPopup = React.memo(({
     // Add a slight delay before closing to allow tap/click feedback
     setTimeout(() => {
       onClose();
-      document.body.classList.remove('scroll-lock');
     }, 120);
   };
 
@@ -309,7 +301,6 @@ const CalendarPopup = React.memo(({
     // Add a slight delay before closing to allow tap/click feedback
     setTimeout(() => {
       onClose();
-      document.body.classList.remove('scroll-lock');
     }, 120);
   };
 
@@ -803,9 +794,6 @@ export default function DashboardPage() {
     const mealToDeleteData = dailyLogs[selectedDate]?.meals.find(m => m.id === mealId);
     if (mealToDeleteData) {
       setMealToDelete(mealId);
-
-      // ใช้ scroll-lock class แทน overflow-hidden
-      document.body.classList.add('scroll-lock');
     }
   };
 
@@ -846,31 +834,18 @@ export default function DashboardPage() {
 
       // After deleting, close the modal
       setMealToDelete(null);
-
-      // ใช้ scroll-lock class แทน overflow-hidden
-      if (!layoutEditMode && !isCalendarOpen && !mealToEdit) {
-        document.body.classList.remove('scroll-lock');
-      }
     }
   };
 
   // Function to cancel delete
   const cancelDeleteMeal = () => {
     setMealToDelete(null);
-
-    // ใช้ scroll-lock class แทน overflow-hidden
-    if (!layoutEditMode && !isCalendarOpen && !mealToEdit) {
-      document.body.classList.remove('scroll-lock');
-    }
   };
 
   // Function to open meal edit dialog
   const handleEditMeal = (meal: any) => {
     setMealToEdit(meal);
     setEditedQuantity(meal.quantity);
-
-    // ใช้ scroll-lock class แทน overflow-hidden
-    document.body.classList.add('scroll-lock');
   };
 
   // Function to save edited meal
@@ -933,22 +908,12 @@ export default function DashboardPage() {
 
       // Close edit dialog
       setMealToEdit(null);
-
-      // ใช้ scroll-lock class แทน overflow-hidden
-      if (!layoutEditMode && !isCalendarOpen && !mealToDelete) {
-        document.body.classList.remove('scroll-lock');
-      }
     }
   };
 
   // Function to cancel edit
   const cancelEditMeal = () => {
     setMealToEdit(null);
-
-    // ใช้ scroll-lock class แทน overflow-hidden
-    if (!layoutEditMode && !isCalendarOpen && !mealToDelete) {
-      document.body.classList.remove('scroll-lock');
-    }
   };
 
   // Toggle widget visibility
@@ -965,9 +930,6 @@ export default function DashboardPage() {
     setTempWidgetOrder([...widgetOrder]);
     setWidgetVisibility({ ...widgetVisibility });
     setLayoutEditMode(true);
-
-    // ใช้ scroll-lock class แทน overflow-hidden
-    document.body.classList.add('scroll-lock');
   };
 
   // Save layout settings
@@ -980,17 +942,11 @@ export default function DashboardPage() {
 
     // Close edit mode
     setLayoutEditMode(false);
-
-    // ใช้ scroll-lock class แทน overflow-hidden
-    document.body.classList.remove('scroll-lock');
   };
 
   // Close layout edit mode without saving
   const closeLayoutEditMode = () => {
     setLayoutEditMode(false);
-
-    // ใช้ scroll-lock class แทน overflow-hidden
-    document.body.classList.remove('scroll-lock');
   };
 
   // Handle drag end for widget reordering
@@ -1022,8 +978,7 @@ export default function DashboardPage() {
   // Also add clean up of overflow-hidden class when component unmounts
   useEffect(() => {
     return () => {
-      // ใช้ scroll-lock class แทน overflow-hidden
-      document.body.classList.remove('scroll-lock');
+      // Clean up code if needed
     };
   }, []);
 
@@ -1874,10 +1829,6 @@ export default function DashboardPage() {
             isOpen={isCalendarOpen}
             onClose={() => {
               setIsCalendarOpen(false);
-              // ใช้ scroll-lock class แทน overflow-hidden
-              if (!layoutEditMode && !mealToEdit && !mealToDelete) {
-                document.body.classList.remove('scroll-lock');
-              }
             }}
             selectedDate={selectedDate}
             onSelectDate={(date) => {

@@ -98,16 +98,12 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      document.body.style.overflow = 'hidden';
-      document.documentElement.classList.add('overflow-hidden');
     } else {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('overflow-hidden');
+      // ลบการตั้งค่า overflow กลับคืน
     }
     
     return () => {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('overflow-hidden');
+      // ลบการทำความสะอาดเมื่อ component ถูกทำลาย
     };
   }, [isOpen]);
 

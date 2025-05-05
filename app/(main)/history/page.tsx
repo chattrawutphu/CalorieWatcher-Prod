@@ -108,17 +108,6 @@ const CalendarPopup = ({
     if (isOpen) {
       setCurrentMonthDate(parse(selectedDate, 'yyyy-MM-dd', new Date()));
     }
-    
-    // Prevent body scroll when popup is open
-    if (isOpen) {
-      document.body.classList.add('overflow-hidden');
-    } else {
-      document.body.classList.remove('overflow-hidden');
-    }
-    
-    return () => {
-      document.body.classList.remove('overflow-hidden');
-    };
   }, [isOpen, selectedDate]);
   
   // Get date locale based on app language
