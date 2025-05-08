@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { homeTranslations, formatTranslation } from "@/app/locales/home";
+import { ModalSheet } from "@/components/ui/modal-sheet";
 
 // Define the type for translations to fix TypeScript errors
 type TranslationType = typeof homeTranslations.en;
@@ -247,7 +248,6 @@ export default function ShopPage() {
     // เพิ่มเอฟเฟกต์เมื่อสลับเป็น Pro
     if (newStatus === "pro") {
       setShowProAnimation(true);
-      setTimeout(() => setShowProAnimation(false), 1200);
     }
     
     setSubscriptionStatus(newStatus);
@@ -405,75 +405,74 @@ export default function ShopPage() {
       animate="show"
       className="space-y-6"
     >
-      {/* Pro Animation Overlay */}
-      {showProAnimation && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+      {/* Pro Animation Overlay - replaced with ModalSheet */}
+      <ModalSheet
+        isOpen={showProAnimation}
+        onClose={() => setShowProAnimation(false)}
+        title=""
+        showCloseButton={false}
+        contentClass="flex items-center justify-center"
+      >
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ 
+            scale: [0.8, 1.2, 1], 
+            opacity: [0, 1, 0],
+            rotate: [0, 10, -10, 0]
+          }}
+          transition={{ 
+            duration: 1,
+            times: [0, 0.5, 1],
+            ease: "easeInOut"
+          }}
+          className="relative flex flex-col items-center"
         >
+          <Crown 
+            className="h-32 w-32 text-yellow-300 drop-shadow-[0_0_15px_rgba(250,204,21,0.7)]" 
+          />
+          <span className="text-xl font-bold mt-3" style={{ color: currentColors.primary }}>
+            {t.subscriptionStatus.pro}!
+          </span>
+          
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ 
-              scale: [0.8, 1.2, 1], 
-              opacity: [0, 1, 0],
-              rotate: [0, 10, -10, 0]
-            }}
-            transition={{ 
-              duration: 1,
-              times: [0, 0.5, 1],
-              ease: "easeInOut"
-            }}
-            className="relative flex flex-col items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+            className="absolute inset-0 z-0"
           >
-            <Crown 
-              className="h-32 w-32 text-yellow-300 drop-shadow-[0_0_15px_rgba(250,204,21,0.7)]" 
-            />
-            <span className="text-xl font-bold mt-3" style={{ color: currentColors.primary }}>
-              {t.subscriptionStatus.pro}!
-            </span>
-            
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="absolute inset-0 z-0"
-            >
-              {Array.from({ length: 10 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ 
-                    x: "50%", 
-                    y: "50%", 
-                    scale: 0, 
-                    opacity: 1 
-                  }}
-                  animate={{ 
-                    x: `${Math.random() * 100 - 50}%`, 
-                    y: `${Math.random() * 100 - 50}%`, 
-                    scale: Math.random() * 0.5 + 0.5, 
-                    opacity: 0 
-                  }}
-                  transition={{ 
-                    duration: Math.random() * 0.7 + 0.3,
-                    ease: "easeOut"
-                  }}
-                  className="absolute"
-                  style={{ 
-                    left: "50%",
-                    top: "50%",
-                    transformOrigin: "center",
-                    color: i % 2 === 0 ? currentColors.primary : currentColors.accent
-                  }}
-                >
-                  {i % 3 === 0 ? <Sparkles className="h-5 w-5" /> : (i % 3 === 1 ? <Star className="h-5 w-5" /> : <Crown className="h-5 w-5" />)}
-                </motion.div>
-              ))}
-            </motion.div>
+            {Array.from({ length: 10 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ 
+                  x: "50%", 
+                  y: "50%", 
+                  scale: 0, 
+                  opacity: 1 
+                }}
+                animate={{ 
+                  x: `${Math.random() * 100 - 50}%`, 
+                  y: `${Math.random() * 100 - 50}%`, 
+                  scale: Math.random() * 0.5 + 0.5, 
+                  opacity: 0 
+                }}
+                transition={{ 
+                  duration: Math.random() * 0.7 + 0.3,
+                  ease: "easeOut"
+                }}
+                className="absolute"
+                style={{ 
+                  left: "50%",
+                  top: "50%",
+                  transformOrigin: "center",
+                  color: i % 2 === 0 ? currentColors.primary : currentColors.accent
+                }}
+              >
+                {i % 3 === 0 ? <Sparkles className="h-5 w-5" /> : (i % 3 === 1 ? <Star className="h-5 w-5" /> : <Crown className="h-5 w-5" />)}
+              </motion.div>
+            ))}
           </motion.div>
         </motion.div>
-      )}
+      </ModalSheet>
 
       {/* Apps & Tools Section Header */}
       <motion.div variants={item} className="mb-4">
@@ -1077,7 +1076,7 @@ export default function ShopPage() {
               {subscriptionStatus === "pro" ? t.premiumDesc : t.premiumDesc}
             </p>
             
-            <div className="flex flex-col space-y-3 mb-5 relative z-10">
+            <div className="flex flex-col mb-5 relative z-10">
               {[
                 "Access to all premium themes",
                 "Unlimited customizations",

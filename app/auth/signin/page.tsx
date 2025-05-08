@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/providers/language-provider";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ModalSheet } from "@/components/ui/modal-sheet";
 
 // Translations
 const translations = {
@@ -165,65 +166,59 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[hsl(var(--background))]">
-      {showAppleForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-[hsl(var(--background))] p-6 rounded-xl shadow-xl w-[90%] max-w-md"
-          >
-            <h3 className="text-xl font-bold mb-4 text-center">Apple Sign In (Dummy)</h3>
-            <form onSubmit={handleAppleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input 
-                  type="text" 
-                  className="w-full p-2 rounded border bg-[hsl(var(--input))] border-[hsl(var(--border))]" 
-                  value={appleFormData.name}
-                  onChange={(e) => setAppleFormData({...appleFormData, name: e.target.value})}
-                  placeholder="Your Name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input 
-                  type="email" 
-                  className="w-full p-2 rounded border bg-[hsl(var(--input))] border-[hsl(var(--border))]" 
-                  value={appleFormData.email}
-                  onChange={(e) => setAppleFormData({...appleFormData, email: e.target.value})}
-                  placeholder="your.email@example.com"
-                  required
-                />
-              </div>
-              <div className="flex space-x-3 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowAppleForm(false)}
-                  className="flex-1 py-2 rounded-lg border border-[hsl(var(--border))]"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="flex-1 py-2 rounded-lg bg-gray-900 text-white"
-                  disabled={loadingApple}
-                >
-                  {loadingApple ? (
-                    <div className="flex justify-center">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-5 h-5 rounded-full border-2 border-white border-t-transparent"
-                      />
-                    </div>
-                  ) : 'Sign In'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
+      <ModalSheet
+        isOpen={showAppleForm}
+        onClose={() => setShowAppleForm(false)}
+        title="Apple Sign In (Dummy)"
+      >
+        <form onSubmit={handleAppleFormSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Name</label>
+            <input 
+              type="text" 
+              className="w-full p-2 rounded border bg-[hsl(var(--input))] border-[hsl(var(--border))]" 
+              value={appleFormData.name}
+              onChange={(e) => setAppleFormData({...appleFormData, name: e.target.value})}
+              placeholder="Your Name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input 
+              type="email" 
+              className="w-full p-2 rounded border bg-[hsl(var(--input))] border-[hsl(var(--border))]" 
+              value={appleFormData.email}
+              onChange={(e) => setAppleFormData({...appleFormData, email: e.target.value})}
+              placeholder="your.email@example.com"
+              required
+            />
+          </div>
+          <div className="flex space-x-3 pt-2">
+            <button 
+              type="button" 
+              onClick={() => setShowAppleForm(false)}
+              className="flex-1 py-2 rounded-lg border border-[hsl(var(--border))]"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="flex-1 py-2 rounded-lg bg-gray-900 text-white"
+              disabled={loadingApple}
+            >
+              {loadingApple ? (
+                <div className="flex justify-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 rounded-full border-2 border-white border-t-transparent"
+                  />
+                </div>
+              ) : 'Sign In'}
+            </button>
+          </div>
+        </form>
+      </ModalSheet>
 
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 w-32 h-32 bg-[hsl(var(--primary))/0.4] rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob" />
