@@ -280,7 +280,7 @@ export const MobileNav = memo(function MobileNav() {
         />
       )}
       
-      <nav className="fixed bottom-0 left-0 z-50 w-full visibility-visible">
+      <nav className="fixed bottom-0 left-0 z-[10000] w-full visibility-visible">
         <div className="mx-auto sm:px-6 px-2">
           <div
             className="flex pb-6 pt-0 items-center justify-around bg-[hsl(var(--background))] bg-opacity-90 backdrop-blur-md sm:rounded-t-xl rounded-t-lg sm:border border-b-0 border-x-0 sm:border-x sm:border-t border-[hsl(var(--border))] shadow-lg max-w-md mx-auto"

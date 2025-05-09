@@ -25,6 +25,7 @@ import { WaterTracker } from "@/components/ui/water-tracker";
 import { WeightTracker } from "@/components/ui/weight-tracker";
 import { AnalyticsWidget } from "@/components/ui/analytics-widget";
 import MoodEmoji from "@/components/ui/mood-emoji";
+import { usePopups } from "@/components/providers/popups-provider";
 
 // สร้าง components wrappers ที่เป็น default export
 const WaterTrackerWrapper = lazy(() =>
@@ -202,7 +203,74 @@ import CalendarPopup from "@/components/ui/calendar-popup";
 import LayoutEditor from "@/components/ui/layout-editor";
 import BottomSheet from "@/components/ui/bottom-sheet";
 
-// เพิ่ม context ไว้ล่างสุดของไฟล์ ก่อน export default
+// เพิ่ม DateSelector component
+const DateSelector = ({
+  selectedDate,
+  onSelectDate,
+  onOpenCalendar,
+  isSticky,
+  dateLocale,
+  t
+}: {
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+  onOpenCalendar: () => void;
+  isSticky: boolean;
+  dateLocale: any;
+  t: any;
+}) => {
+  const selectedDateObj = parse(selectedDate, 'yyyy-MM-dd', new Date());
+  
+  return (
+    <div className={`flex items-center ${isSticky ? 'justify-center px-4 pt-1 pb-1' : 'justify-center'}`}>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={(e) => {
+          e.preventDefault();
+          onSelectDate(format(subDays(selectedDateObj, 1), 'yyyy-MM-dd'));
+        }}
+        className="h-8 w-8 rounded-full mr-1"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      <div
+        className="flex-1 flex items-center justify-center gap-2 cursor-pointer"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onOpenCalendar();
+        }}
+      >
+        <div
+          className="h-7 w-7 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center"
+        >
+          <CalendarIcon className="h-4 w-4" />
+        </div>
+        <h2 className="text-md font-semibold text-[hsl(var(--foreground))]">
+          {isToday(selectedDateObj)
+            ? t.today
+            : format(selectedDateObj, 'EEE, d MMM', { locale: dateLocale })}
+        </h2>
+      </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={(e) => {
+          e.preventDefault();
+          onSelectDate(format(addDays(selectedDateObj, 1), 'yyyy-MM-dd'));
+        }}
+        className="h-8 w-8 rounded-full ml-1"
+        disabled={isToday(selectedDateObj)}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
+
 // กำหนด DashboardContext เพื่อส่งค่า showAllSlideControls ลงไปยัง SwipeToRevealControls
 const DashboardContext = React.createContext<{ showAllSlideControls: boolean }>({ showAllSlideControls: false });
 
@@ -213,30 +281,33 @@ export default function DashboardPage() {
   const { getTodayStats, goals, recentMeals = [], updateDailyMood, getDailyMood } = useNutrition();
   const { dailyLogs, setCurrentDate, currentDate } = useNutritionStore();
   const dragControls = useDragControls();
+  
+  // เพิ่ม usePopups hook
+  const { 
+    openCalendar, 
+    openLayoutEditor, 
+    openEditMeal,
+    isAnyModalOpen 
+  } = usePopups();
 
   // State for calendar
   const [selectedDate, setSelectedDate] = useState(currentDate);
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+  const selectedDateObj = parse(selectedDate, 'yyyy-MM-dd', new Date());
 
   // State for mood and notes
   const [notes, setNotes] = useState("");
   const [moodRating, setMoodRating] = useState<number | undefined>(undefined);
   const [saved, setSaved] = useState(false);
 
-  // State for calendar popup
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
   // State for meal history editing - เปลี่ยน state เป็น constant แบบ false ถาวร
   const isEditingMeals = false; // เปลี่ยนจาก state เป็น constant false
   const [mealToDelete, setMealToDelete] = useState<string | null>(null);
-  const [mealToEdit, setMealToEdit] = useState<any | null>(null);
-  const [editedQuantity, setEditedQuantity] = useState<number>(1);
-
+  
   // State for graph type selection
   const [selectedGraphType, setSelectedGraphType] = useState<"nutrients" | "water" | "weight">("nutrients");
 
   // State for widget visibility
-  const [layoutEditMode, setLayoutEditMode] = useState(false);
   const [widgetVisibility, setWidgetVisibility] = useState<Record<string, boolean>>({
     nutritionSummary: true,
     analyticsWidget: true,
@@ -377,10 +448,8 @@ export default function DashboardPage() {
   };
 
   const handleSelectDate = (date: string) => {
-    // Update selected date without scrolling
     setSelectedDate(date);
     setCurrentDate(date);
-    // No need to change scroll position
   };
 
   const goToToday = () => {
@@ -502,7 +571,6 @@ export default function DashboardPage() {
 
   const calendarDays = generateCalendarDays();
   const daysInWeek = getDaysOfWeekLabels();
-  const selectedDateObj = parse(selectedDate, 'yyyy-MM-dd', new Date());
 
   // Update mood and notes when selected date changes
   useEffect(() => {
@@ -580,76 +648,7 @@ export default function DashboardPage() {
 
   // Function to open meal edit dialog
   const handleEditMeal = (meal: any) => {
-    setMealToEdit(meal);
-    setEditedQuantity(meal.quantity);
-  };
-
-  // Function to save edited meal
-  const saveEditedMeal = () => {
-    if (mealToEdit && dailyLogs[selectedDate]) {
-      // Calculate difference in nutrition values based on previous values
-      const oldMealData = dailyLogs[selectedDate].meals.find(meal => meal.id === mealToEdit.id);
-      if (!oldMealData) return;
-
-      // Calculate old nutritional values
-      const oldCalories = oldMealData.foodItem.calories * oldMealData.quantity;
-      const oldProtein = oldMealData.foodItem.protein * oldMealData.quantity;
-      const oldCarbs = oldMealData.foodItem.carbs * oldMealData.quantity;
-      const oldFat = oldMealData.foodItem.fat * oldMealData.quantity;
-
-      // Calculate new nutritional values
-      const newCalories = mealToEdit.foodItem.calories * editedQuantity;
-      const newProtein = mealToEdit.foodItem.protein * editedQuantity;
-      const newCarbs = mealToEdit.foodItem.carbs * editedQuantity;
-      const newFat = mealToEdit.foodItem.fat * editedQuantity;
-
-      // Update the meal in the array
-      const updatedMeals = dailyLogs[selectedDate].meals.map(meal =>
-        meal.id === mealToEdit.id
-          ? {
-            ...meal,
-            quantity: editedQuantity,
-            foodItem: {
-              ...mealToEdit.foodItem // ใช้ค่าที่แก้ไขใหม่ทั้งหมด
-            }
-          }
-          : meal
-      );
-
-      // Update daily logs with recalculated totals
-      const updatedDailyLog = {
-        ...dailyLogs[selectedDate],
-        meals: updatedMeals,
-        totalCalories: dailyLogs[selectedDate].totalCalories - oldCalories + newCalories,
-        totalProtein: dailyLogs[selectedDate].totalProtein - oldProtein + newProtein,
-        totalCarbs: dailyLogs[selectedDate].totalCarbs - oldCarbs + newCarbs,
-        totalFat: dailyLogs[selectedDate].totalFat - oldFat + newFat
-      };
-
-      // Update store
-      useNutritionStore.setState({
-        dailyLogs: {
-          ...dailyLogs,
-          [selectedDate]: updatedDailyLog
-        }
-      });
-
-      // Show success toast
-      const { toast } = useToast();
-      toast({
-        title: locale === 'th' ? 'อาหารถูกแก้ไขแล้ว' : locale === 'ja' ? '食事が更新されました' : locale === 'zh' ? '餐食已更新' : 'Meal Updated',
-        description: locale === 'th' ? 'อาหารถูกแก้ไขเรียบร้อยแล้ว' : locale === 'ja' ? '食事が正常に更新されました' : locale === 'zh' ? '餐食已成功更新' : 'Meal has been successfully updated',
-        duration: 2000
-      });
-
-      // Close edit dialog
-      setMealToEdit(null);
-    }
-  };
-
-  // Function to cancel edit
-  const cancelEditMeal = () => {
-    setMealToEdit(null);
+    openEditMeal(meal, meal.quantity);
   };
 
   // Toggle widget visibility
@@ -660,15 +659,22 @@ export default function DashboardPage() {
     }));
   };
 
-  // Enter layout edit mode
+  // ปรับฟังก์ชั่นที่เปิด Layout Editor
   const enterLayoutEditMode = () => {
-    // Save current order before editing
-    setTempWidgetOrder([...widgetOrder]);
-    setWidgetVisibility({ ...widgetVisibility });
-    setLayoutEditMode(true);
+    const widgetItems = widgetOrder.map(widgetKey => ({
+      id: widgetKey,
+      label: typeof t[`${widgetKey}` as keyof typeof t] === 'string'
+        ? t[`${widgetKey}` as keyof typeof t] as string
+        : widgetKey,
+      icon: getWidgetIcon(widgetKey),
+      isVisible: widgetVisibility[widgetKey]
+    }));
+    
+    // เรียกใช้ openLayoutEditor โดยส่ง callback เพื่อจัดการเมื่อมีการบันทึก layout
+    openLayoutEditor(widgetItems);
   };
 
-  // Replace Layout Edit Mode Panel with LayoutEditor component
+  // เพิ่มฟังก์ชันสำหรับบันทึก layout
   const handleSaveLayout = (newOrder: string[], visibility: Record<string, boolean>) => {
     // Save widget order to localStorage
     localStorage.setItem('dashboardWidgetOrder', JSON.stringify(newOrder));
@@ -676,14 +682,6 @@ export default function DashboardPage() {
     // Apply the new order
     setWidgetOrder(newOrder);
     setWidgetVisibility(visibility);
-
-    // Close edit mode
-    setLayoutEditMode(false);
-  };
-
-  // Close layout edit mode without saving
-  const closeLayoutEditMode = () => {
-    setLayoutEditMode(false);
   };
 
   // Handle drag end for widget reordering
@@ -751,133 +749,40 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-          {/* ใช้ LayoutEditor component แทน Layout Edit Mode Panel */}
-          <LayoutEditor
-            isOpen={layoutEditMode}
-            onClose={() => setLayoutEditMode(false)}
-            widgetItems={widgetOrder.map(widgetKey => ({
-              id: widgetKey,
-              label: typeof translations[`${widgetKey}` as keyof typeof translations] === 'string' 
-                ? translations[`${widgetKey}` as keyof typeof translations] as string
-                : widgetKey,
-              icon: getWidgetIcon(widgetKey),
-              isVisible: widgetVisibility[widgetKey]
-            }))}
-            onSave={handleSaveLayout}
-            translations={{
-              editLayout: translations.editLayout as string,
-              saveLayout: translations.saveLayout as string
-            }}
-          />
-
         {/* Sticky Date Selector - Shows when scrolled past the original date selector */}
         {isDateSelectorSticky && (
-          <div className="fixed -top-6 left-0 pt-6 right-0 z-50 bg-[hsl(var(--background))] border-b border-[hsl(var(--border))] shadow-sm">
-            <div className="max-w-md mx-auto flex items-center px-4 pt-3 pb-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSelectDate(format(subDays(selectedDateObj, 1), 'yyyy-MM-dd'));
-                }}
-                className="h-8 w-8 rounded-full mr-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-
-              <div
-                className="flex-1 flex items-center justify-center gap-2 cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                    setIsCalendarOpen(true);
-                }}
-              >
-                <div
-                  className="h-7 w-7 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center"
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                </div>
-                <h2 className="text-md font-semibold text-[hsl(var(--foreground))]">
-                  {isToday(selectedDateObj)
-                    ? t.today
-                    : format(selectedDateObj, 'EEE, d MMM', { locale: getDateLocale() })}
-                </h2>
-              </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSelectDate(format(addDays(selectedDateObj, 1), 'yyyy-MM-dd'));
-                }}
-                className="h-8 w-8 rounded-full ml-1"
-                disabled={isToday(selectedDateObj)}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="fixed top-0 left-0 right-0 z-10 w-full p-2 shadow-sm backdrop-blur-md border-b border-[hsl(var(--border))]">
+            <DateSelector 
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+              onOpenCalendar={() => openCalendar(selectedDate, handleSelectDate)}
+              isSticky={true}
+              dateLocale={getDateLocale()}
+              t={t}
+            />
           </div>
         )}
 
-        {/* Date Selector - Now independent from any widget */}
-        <motion.div variants={item} className="mb-2">
-          <div className="flex items-center justify-center" ref={dateRef}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSelectDate(format(subDays(selectedDateObj, 1), 'yyyy-MM-dd'));
-              }}
-              className="h-8 w-8 rounded-full mr-1"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <div
-              className="flex-1 flex items-center justify-center gap-2 cursor-pointer"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                  setIsCalendarOpen(true);
-              }}
-            >
-              <div
-                className="h-7 w-7 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center"
-              >
-                <CalendarIcon className="h-4 w-4" />
-              </div>
-              <h2 className="text-md font-semibold text-[hsl(var(--foreground))]">
-                {isToday(selectedDateObj)
-                  ? t.today
-                  : format(selectedDateObj, 'EEE, d MMM', { locale: getDateLocale() })}
-              </h2>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSelectDate(format(addDays(selectedDateObj, 1), 'yyyy-MM-dd'));
-              }}
-              className="h-8 w-8 rounded-full ml-1"
-              disabled={isToday(selectedDateObj)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+        <motion.div variants={item} ref={dateRef}>
+          <DateSelector 
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            onOpenCalendar={() => openCalendar(selectedDate, handleSelectDate)}
+            isSticky={false}
+            dateLocale={getDateLocale()}
+            t={t}
+          />
         </motion.div>
 
-        {/* Selected Day Stats - Enhanced with Macros Distribution Charts */}
-        {widgetOrder.map((widgetKey) => {
+        {/* Widget display - uses the saved order */}
+        {widgetOrder.map((widgetKey, index) => {
+          // Only render visible widgets
+          if (!widgetVisibility[widgetKey]) return null;
+
           // Render each widget according to its visibility and position in order
           switch (widgetKey) {
             case 'nutritionSummary':
-              return widgetVisibility.nutritionSummary && (
+              return (
                 <motion.div key="nutritionSummary" variants={item}>
                   <Card className="p-5 shadow-md rounded-2xl overflow-hidden mt-1">
                     <div className="flex justify-between items-center mb-4">
@@ -1090,7 +995,7 @@ export default function DashboardPage() {
                 </motion.div>
               );
             case 'mealHistory':
-              return widgetVisibility.mealHistory && (
+              return (
                 <motion.div key="mealHistory" variants={item} className="mt-1">
                   <Card className="p-5 shadow-md rounded-2xl">
                     <div className="flex justify-between items-center mb-4">
@@ -1237,222 +1142,28 @@ export default function DashboardPage() {
         })}
 
         {/* Delete Confirmation Dialog */}
-          <BottomSheet
-            isOpen={mealToDelete !== null}
-            onClose={cancelDeleteMeal}
-            title={translations.confirmDelete}
-            showDragHandle={true}
-            height="fullscreen"
-              >
-                <div className="max-w-md mx-auto">
-              <p className="text-[hsl(var(--muted-foreground))] text-sm mt-1 mb-6">
-                      {translations.confirmDeleteMessage}
-                    </p>
-
-                  <div className="flex justify-center space-x-3 mt-6 pb-20">
-                    <Button
-                      variant="outline"
-                      onClick={cancelDeleteMeal}
-                      className="w-1/3"
-                    >
-                      {translations.cancel}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={confirmDeleteMeal}
-                      className="w-1/3"
-                    >
-                      {translations.delete}
-                    </Button>
-                  </div>
-                </div>
-          </BottomSheet>
-
-        {/* Edit Meal Dialog */}
-          <BottomSheet
-            isOpen={mealToEdit !== null}
-            onClose={cancelEditMeal}
-            title={translations.editMeal}
-            showDragHandle={true}
-            height="fullscreen"
-              >
-                <div className="max-w-md mx-auto">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium">{translations.foodName}</label>
-                      <input
-                        type="text"
-                        value={mealToEdit?.foodItem.name}
-                        onChange={(e) => {
-                          if (mealToEdit) {
-                            setMealToEdit({
-                              ...mealToEdit,
-                              foodItem: {
-                                ...mealToEdit.foodItem,
-                                name: e.target.value
-                              }
-                            });
-                          }
-                        }}
-                        className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">{translations.quantity}</label>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setEditedQuantity(prev => Math.max(0.5, prev - 0.5))}
-                          className="h-8 w-8 rounded-full"
-                        >
-                          <Minus className="h-3.5 w-3.5" />
-                        </Button>
-
-                        <div className="flex-1 px-3 py-1.5 border rounded-md text-center bg-[hsl(var(--background))] text-sm">
-                          {editedQuantity} {mealToEdit?.foodItem.servingSize}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setEditedQuantity(prev => prev + 0.5)}
-                          className="h-8 w-8 rounded-full"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">{translations.servingSize}</label>
-                      <input
-                        type="text"
-                        value={mealToEdit?.foodItem.servingSize}
-                        onChange={(e) => {
-                          if (mealToEdit) {
-                            setMealToEdit({
-                              ...mealToEdit,
-                              foodItem: {
-                                ...mealToEdit.foodItem,
-                                servingSize: e.target.value
-                              }
-                            });
-                          }
-                        }}
-                        className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">{translations.calories} (kcal)</label>
-                        <input
-                          type="number"
-                          value={mealToEdit?.foodItem.calories}
-                          onChange={(e) => {
-                            if (mealToEdit) {
-                              setMealToEdit({
-                                ...mealToEdit,
-                                foodItem: {
-                                  ...mealToEdit.foodItem,
-                                  calories: parseFloat(e.target.value) || 0
-                                }
-                              });
-                            }
-                          }}
-                          className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">{translations.protein} (g)</label>
-                        <input
-                          type="number"
-                          value={mealToEdit?.foodItem.protein}
-                          onChange={(e) => {
-                            if (mealToEdit) {
-                              setMealToEdit({
-                                ...mealToEdit,
-                                foodItem: {
-                                  ...mealToEdit.foodItem,
-                                  protein: parseFloat(e.target.value) || 0
-                                }
-                              });
-                            }
-                          }}
-                          className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">{translations.fat} (g)</label>
-                        <input
-                          type="number"
-                          value={mealToEdit?.foodItem.fat}
-                          onChange={(e) => {
-                            if (mealToEdit) {
-                              setMealToEdit({
-                                ...mealToEdit,
-                                foodItem: {
-                                  ...mealToEdit.foodItem,
-                                  fat: parseFloat(e.target.value) || 0
-                                }
-                              });
-                            }
-                          }}
-                          className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">{translations.carbs} (g)</label>
-                        <input
-                          type="number"
-                          value={mealToEdit?.foodItem.carbs}
-                          onChange={(e) => {
-                            if (mealToEdit) {
-                              setMealToEdit({
-                                ...mealToEdit,
-                                foodItem: {
-                                  ...mealToEdit.foodItem,
-                                  carbs: parseFloat(e.target.value) || 0
-                                }
-                              });
-                            }
-                          }}
-                          className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="text-right text-sm text-[hsl(var(--primary))]">
-                      {translations.totalCalories}: {Math.round(mealToEdit?.foodItem.calories * editedQuantity)} {translations.kcal}
-                    </div>
-
-                    <div className="flex justify-end mt-6 pb-20">
-                      <Button
-                        onClick={saveEditedMeal}
-                        className="bg-[hsl(var(--primary))]"
-                      >
-                        {translations.save}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-          </BottomSheet>
-
-          {/* Calendar Popup using the component */}
-        <CalendarPopup
-          isOpen={isCalendarOpen}
-            onClose={() => setIsCalendarOpen(false)}
-          selectedDate={selectedDate}
-          onSelectDate={(date) => {
-            setSelectedDate(date);
-            setCurrentDate(date);
-          }}
-        />
+        {mealToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="max-w-sm mx-auto bg-[hsl(var(--background))] p-5 rounded-lg">
+              <h3 className="text-xl mb-4">Delete confirmation</h3>
+              <p className="mb-5">Are you sure you want to delete this meal?</p>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setMealToDelete(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDeleteMeal}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.div>
       </DashboardContext.Provider>
     </div>
