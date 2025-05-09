@@ -162,12 +162,6 @@ const LayoutEditor = ({
       showCloseButton={false}
       height="fullscreen"
     >
-      <div className="flex justify-end mb-4">
-        <Button onClick={handleSave} className="h-8 px-4">
-          {translations.saveLayout}
-        </Button>
-      </div>
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -189,6 +183,12 @@ const LayoutEditor = ({
           </div>
         </SortableContext>
       </DndContext>
+      
+      <div className="flex justify-end mt-6 mb-20">
+        <Button onClick={handleSave} className="h-10 px-6">
+          {translations.saveLayout}
+        </Button>
+      </div>
     </BottomSheet>
   );
 };

@@ -134,7 +134,7 @@ const CalendarPopup = ({
       isOpen={isOpen}
       onClose={onClose}
       title={calendarTitle}
-      showCloseButton={true}
+      showCloseButton={false}
       showDragHandle={true}
       height="fullscreen"
     >

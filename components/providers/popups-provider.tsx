@@ -265,6 +265,7 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
           title={bottomSheetTitle}
           height={bottomSheetHeight}
           showDragHandle={true}
+          showCloseButton={false}
         >
           {bottomSheetContent}
         </BottomSheet>
@@ -298,6 +299,7 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
             onClose={closeEditMeal}
             title="Edit Meal"
             showDragHandle={true}
+            showCloseButton={false}
             height="fullscreen"
           >
             <div className="max-w-md mx-auto">

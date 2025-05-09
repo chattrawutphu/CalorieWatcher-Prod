@@ -26,6 +26,7 @@ import { WeightTracker } from "@/components/ui/weight-tracker";
 import { AnalyticsWidget } from "@/components/ui/analytics-widget";
 import MoodEmoji from "@/components/ui/mood-emoji";
 import { usePopups } from "@/components/providers/popups-provider";
+import { Separator } from "@/components/ui/separator";
 
 // สร้าง components wrappers ที่เป็น default export
 const WaterTrackerWrapper = lazy(() =>
@@ -220,11 +221,11 @@ const DateSelector = ({
   t: any;
 }) => {
   const selectedDateObj = parse(selectedDate, 'yyyy-MM-dd', new Date());
-  
+
   return (
-    <div className={`flex items-center ${isSticky ? 'justify-center px-4 pt-1 pb-1' : 'justify-center'}`}>
-      <Button
-        variant="ghost"
+    <div className={`flex items-center ${isSticky ? 'justify-center px-4 pt-5 pb-1' : 'justify-center'}`}>
+                <Button
+                  variant="ghost"
         size="icon"
         onClick={(e) => {
           e.preventDefault();
@@ -233,7 +234,7 @@ const DateSelector = ({
         className="h-8 w-8 rounded-full mr-1"
       >
         <ChevronLeft className="h-4 w-4" />
-      </Button>
+                </Button>
 
       <div
         className="flex-1 flex items-center justify-center gap-2 cursor-pointer"
@@ -247,16 +248,16 @@ const DateSelector = ({
           className="h-7 w-7 bg-[hsl(var(--accent))]/10 rounded-full flex items-center justify-center"
         >
           <CalendarIcon className="h-4 w-4" />
-        </div>
+                </div>
         <h2 className="text-md font-semibold text-[hsl(var(--foreground))]">
           {isToday(selectedDateObj)
             ? t.today
             : format(selectedDateObj, 'EEE, d MMM', { locale: dateLocale })}
         </h2>
-      </div>
+              </div>
 
-      <Button
-        variant="ghost"
+                    <Button
+                      variant="ghost"
         size="icon"
         onClick={(e) => {
           e.preventDefault();
@@ -266,8 +267,8 @@ const DateSelector = ({
         disabled={isToday(selectedDateObj)}
       >
         <ChevronRight className="h-4 w-4" />
-      </Button>
-    </div>
+                    </Button>
+              </div>
   );
 };
 
@@ -303,7 +304,7 @@ export default function DashboardPage() {
   // State for meal history editing - เปลี่ยน state เป็น constant แบบ false ถาวร
   const isEditingMeals = false; // เปลี่ยนจาก state เป็น constant false
   const [mealToDelete, setMealToDelete] = useState<string | null>(null);
-  
+
   // State for graph type selection
   const [selectedGraphType, setSelectedGraphType] = useState<"nutrients" | "water" | "weight">("nutrients");
 
@@ -751,7 +752,7 @@ export default function DashboardPage() {
 
         {/* Sticky Date Selector - Shows when scrolled past the original date selector */}
         {isDateSelectorSticky && (
-          <div className="fixed top-0 left-0 right-0 z-10 w-full p-2 shadow-sm backdrop-blur-md border-b border-[hsl(var(--border))]">
+          <div className="fixed top-0 left-0 right-0 z-10 w-full p-2 shadow-sm backdrop-blur-md border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]" style={{marginTop: '0px'}}>
             <DateSelector 
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
@@ -1142,27 +1143,40 @@ export default function DashboardPage() {
         })}
 
         {/* Delete Confirmation Dialog */}
-        {mealToDelete && (
+          {mealToDelete && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="max-w-sm mx-auto bg-[hsl(var(--background))] p-5 rounded-lg">
-              <h3 className="text-xl mb-4">Delete confirmation</h3>
-              <p className="mb-5">Are you sure you want to delete this meal?</p>
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setMealToDelete(null)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={confirmDeleteMeal}
-                >
-                  Delete
-                </Button>
+            <div className="w-full max-w-sm mx-auto bg-[hsl(var(--background))] p-5 rounded-lg shadow-lg animate-in fade-in-50 zoom-in-95 duration-150">
+              <div className="flex items-center gap-2 mb-2">
+                <Trash2 className="h-5 w-5 text-[hsl(var(--destructive))]" />
+                    <h3 className="text-lg font-semibold">{translations.confirmDelete}</h3>
               </div>
-            </div>
-          </div>
+              
+              <Separator className="my-2" />
+              
+              <p className="py-3 text-sm text-[hsl(var(--muted-foreground))]">
+                      {translations.confirmDeleteMessage}
+                    </p>
+
+              <div className="flex justify-end gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                  size="sm"
+                      onClick={cancelDeleteMeal}
+                  className="h-9"
+                    >
+                      {translations.cancel}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                  size="sm"
+                      onClick={confirmDeleteMeal}
+                  className="h-9"
+                    >
+                      {translations.delete}
+                    </Button>
+                  </div>
+                </div>
+                  </div>
         )}
       </motion.div>
       </DashboardContext.Provider>

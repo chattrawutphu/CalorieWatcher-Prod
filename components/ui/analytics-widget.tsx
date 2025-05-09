@@ -649,7 +649,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ dailyLogs, goa
         <div className="absolute -bottom-16 -left-16 w-36 h-36 rounded-full bg-gradient-to-tr from-[hsl(var(--background))]/15 to-[hsl(var(--background))]/5 blur-xl"></div>
       </div>
       
-      <div className="relative z-10 flex flex-col space-y-4">
+      <div className="relative flex flex-col space-y-4">
         {/* Title and Graph Type Selector */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
