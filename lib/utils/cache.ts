@@ -3,23 +3,20 @@
 
 // กำหนดชื่อ cache key
 const CACHE_KEYS = {
-  PROFILE_IMAGE: 'profile_image',
-  PROFILE_DATA: 'profile_data',
-  POSTS: 'cached_posts',
-  POST_IMAGES: 'post_images'
+  APP_DATA: 'app_data',
+  LAST_BACKUP: 'last-backup-time'
 };
 
 // กำหนดช่วงเวลาที่ cache จะหมดอายุ (ms)
 const CACHE_EXPIRY = {
-  PROFILE: 24 * 60 * 60 * 1000, // 24 ชั่วโมง
-  POSTS: 5 * 60 * 1000 // 5 นาที
+  APP_DATA: 24 * 60 * 60 * 1000, // 24 ชั่วโมง
 };
 
 // ตรวจสอบว่ากำลังทำงานในฝั่ง client หรือไม่
 export const isClient = typeof window !== 'undefined';
 
 // ฟังก์ชันสำหรับบันทึกข้อมูลลงใน localStorage พร้อมเวลาหมดอายุ
-export function saveToCache(key: string, data: any, expiryTime: number = CACHE_EXPIRY.POSTS) {
+export function saveToCache(key: string, data: any, expiryTime: number = CACHE_EXPIRY.APP_DATA) {
   if (!isClient) return;
   
   try {
@@ -56,77 +53,33 @@ export function getFromCache<T>(key: string): T | null {
   }
 }
 
-// ฟังก์ชันสำหรับบันทึกข้อมูลโพสต์
-export function savePostsToCache(posts: any[]) {
-  saveToCache(CACHE_KEYS.POSTS, posts);
-}
-
-// ฟังก์ชันสำหรับดึงข้อมูลโพสต์
-export function getCachedPosts() {
-  return getFromCache<any[]>(CACHE_KEYS.POSTS) || [];
-}
-
-// ฟังก์ชันสำหรับบันทึกข้อมูลรูปภาพโพสต์ (จัดเก็บเป็น Map: imageUrl -> base64)
-export function savePostImageToCache(imageUrl: string, base64Data: string) {
+// ฟังก์ชันสำหรับบันทึกข้อมูลการ backup ล่าสุด
+export function saveLastBackupTime(timestamp: string) {
   if (!isClient) return;
   
   try {
-    const cacheKey = `${CACHE_KEYS.POST_IMAGES}_${imageUrl}`;
-    saveToCache(cacheKey, base64Data, CACHE_EXPIRY.PROFILE);
+    localStorage.setItem(CACHE_KEYS.LAST_BACKUP, timestamp);
   } catch (error) {
-    console.warn('Failed to save post image to cache:', error);
+    console.warn('Failed to save last backup time:', error);
   }
 }
 
-// ฟังก์ชันสำหรับดึงข้อมูลรูปภาพโพสต์
-export function getCachedPostImage(imageUrl: string) {
+// ฟังก์ชันสำหรับดึงเวลา backup ล่าสุด
+export function getLastBackupTime(): string | null {
   if (!isClient) return null;
   
   try {
-    const cacheKey = `${CACHE_KEYS.POST_IMAGES}_${imageUrl}`;
-    return getFromCache<string>(cacheKey);
+    return localStorage.getItem(CACHE_KEYS.LAST_BACKUP);
   } catch (error) {
-    console.warn('Failed to get post image from cache:', error);
+    console.warn('Failed to get last backup time:', error);
     return null;
   }
-}
-
-// ฟังก์ชันสำหรับบันทึกข้อมูลโปรไฟล์
-export function saveProfileDataToCache(profileData: any) {
-  saveToCache(CACHE_KEYS.PROFILE_DATA, profileData, CACHE_EXPIRY.PROFILE);
-}
-
-// ฟังก์ชันสำหรับดึงข้อมูลโปรไฟล์
-export function getCachedProfileData() {
-  return getFromCache<any>(CACHE_KEYS.PROFILE_DATA);
-}
-
-// ฟังก์ชันสำหรับบันทึกข้อมูลรูปภาพโปรไฟล์
-export function saveProfileImageToCache(imageUrl: string, base64Data: string) {
-  if (!isClient) return;
-  
-  try {
-    saveToCache(CACHE_KEYS.PROFILE_IMAGE, { url: imageUrl, data: base64Data }, CACHE_EXPIRY.PROFILE);
-  } catch (error) {
-    console.warn('Failed to save profile image to cache:', error);
-  }
-}
-
-// ฟังก์ชันสำหรับดึงข้อมูลรูปภาพโปรไฟล์
-export function getCachedProfileImage() {
-  return getFromCache<{url: string, data: string}>(CACHE_KEYS.PROFILE_IMAGE);
 }
 
 export default {
   CACHE_KEYS,
   saveToCache,
   getFromCache,
-  savePostsToCache,
-  getCachedPosts,
-  savePostImageToCache,
-  getCachedPostImage,
-  saveProfileDataToCache,
-  getCachedProfileData,
-  saveProfileImageToCache,
-  getCachedProfileImage
+  saveLastBackupTime,
+  getLastBackupTime
 }; 

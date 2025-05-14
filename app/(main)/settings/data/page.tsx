@@ -15,6 +15,7 @@ import { useWaterStore } from "@/lib/store/water-store";
 import { useNutritionStore } from "@/lib/store/nutrition-store";
 import { useWeightStore } from "@/lib/store/weight-store";
 import { useFoodLogStore } from "@/lib/store/food-log-store";
+import { saveLastBackupTime, getLastBackupTime } from "@/lib/utils/cache";
 
 // Animation variants
 const container = {
@@ -48,6 +49,7 @@ export default function DataSettingsPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetTimerId, setResetTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
   
   // Scroll to top on page load
   useEffect(() => {
@@ -59,6 +61,12 @@ export default function DataSettingsPage() {
   const nutritionStore = useNutritionStore();
   const weightStore = useWeightStore();
   const foodLogStore = useFoodLogStore();
+  
+  // Load last backup time
+  useEffect(() => {
+    const storedBackupTime = getLastBackupTime();
+    setLastBackupTime(storedBackupTime);
+  }, []);
   
   // Simplified translations for this page
   const translations = {
@@ -185,8 +193,10 @@ export default function DataSettingsPage() {
         water: waterStore.getState(),
         nutrition: {
           goals: nutritionStore.goals,
+          foodTemplates: nutritionStore.foodTemplates,
           dailyLogs: nutritionStore.dailyLogs,
-          currentDate: nutritionStore.currentDate
+          currentDate: nutritionStore.currentDate,
+          weightHistory: nutritionStore.weightHistory
         },
         weight: weightStore.getState(),
         foodLog: foodLogStore.getState(),
@@ -216,7 +226,9 @@ export default function DataSettingsPage() {
       URL.revokeObjectURL(url);
       
       // Update local storage with last backup date
-      localStorage.setItem("lastBackupDate", new Date().toISOString());
+      const now = new Date().toISOString();
+      saveLastBackupTime(now);
+      setLastBackupTime(now);
       
       // Show success toast
       toast({
@@ -264,8 +276,7 @@ export default function DataSettingsPage() {
               throw new Error("Invalid data format");
             }
             
-            // Apply data to stores - using individual field updates instead of setState
-            // This approach is more compatible and safer
+            // Apply data to stores
             
             // Water Store
             if (jsonData.water) {
@@ -296,7 +307,20 @@ export default function DataSettingsPage() {
                 nutritionStore.setCurrentDate(jsonData.nutrition.currentDate);
               }
               
-              // For daily logs, we'd need dedicated import methods
+              // Replace dailyLogs with imported data if available
+              if (jsonData.nutrition.dailyLogs) {
+                useNutritionStore.setState({ dailyLogs: jsonData.nutrition.dailyLogs });
+              }
+              
+              // Replace food templates with imported data if available
+              if (jsonData.nutrition.foodTemplates) {
+                useNutritionStore.setState({ foodTemplates: jsonData.nutrition.foodTemplates });
+              }
+              
+              // Replace weight history with imported data if available
+              if (jsonData.nutrition.weightHistory) {
+                useNutritionStore.setState({ weightHistory: jsonData.nutrition.weightHistory });
+              }
             }
             
             // Weight Store
@@ -352,6 +376,11 @@ export default function DataSettingsPage() {
                 });
               }
             }
+            
+            // Update local storage with last backup date
+            const now = new Date().toISOString();
+            saveLastBackupTime(now);
+            setLastBackupTime(now);
             
             // Show success toast
             toast({
@@ -436,9 +465,7 @@ export default function DataSettingsPage() {
   };
   
   // Get the last backup date from local storage
-  const lastBackupDate = typeof window !== 'undefined' 
-    ? localStorage.getItem("lastBackupDate") 
-    : null;
+  const lastBackupDate = lastBackupTime || null;
   
   return (
     <motion.div
@@ -471,11 +498,11 @@ export default function DataSettingsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4">
-              {lastBackupDate && (
+              {lastBackupTime && (
                 <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
                   <Clock className="h-3 w-3" />
                   <span>
-                    {t.lastBackup}: {new Date(lastBackupDate).toLocaleDateString(locale, { 
+                    {t.lastBackup}: {new Date(lastBackupTime).toLocaleDateString(locale, { 
                       year: 'numeric', 
                       month: 'short', 
                       day: 'numeric',

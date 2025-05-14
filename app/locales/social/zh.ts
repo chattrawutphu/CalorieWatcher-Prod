@@ -51,4 +51,5 @@ export const socialTranslations = {
   dayAgo: "1天前",
   daysAgo: "{count}天前",
   edited: "已编辑",
+  signOut: "登出",
 }; 

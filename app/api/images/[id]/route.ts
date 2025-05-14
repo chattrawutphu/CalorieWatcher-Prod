@@ -1,50 +1,90 @@
-import { getImageById } from '@/lib/db/images';
 
-export const dynamic = 'force-dynamic';
+import { NextRequest, NextResponse } from 'next/server';
 
-// API endpoint สำหรับดึงรูปภาพจาก MongoDB โดย ID
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  console.log('[API] Mock GET request');
+  
   try {
-    // ดึง ID จาก URL path
-    const url = new URL(request.url);
-    const segments = url.pathname.split('/');
-    const id = segments[segments.length - 1];
-    
-    // ดึงข้อมูลรูปภาพจาก MongoDB
-    const image = await getImageById(id);
-
-    if (!image) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Image not found' }),
-        { 
-          status: 404,
-          headers: { 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // สร้าง response ที่มี content type ตามชนิดของรูปภาพ
-    const base64Data = image.base64;
-    const contentType = image.contentType;
-    
-    // แปลง base64 กลับเป็น binary
-    const buffer = Buffer.from(base64Data, 'base64');
-    
-    // ส่งคืนรูปภาพในรูปแบบ binary พร้อมระบุ content type
-    return new Response(buffer, {
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000', // Cache 1 year
-      },
+    return NextResponse.json({ 
+      success: true,
+      message: "Using local data only - no database connection"
     });
   } catch (error) {
-    console.error('Error fetching image:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Failed to fetch image' }),
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
       { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' } 
-      }
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
     );
   }
-} 
+}
+
+export async function POST(request: NextRequest) {
+  console.log('[API] Mock POST request');
+  
+  try {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Using local data only - no database connection'
+    });
+  } catch (error) {
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  console.log('[API] Mock PUT request');
+  
+  try {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Using local data only - no database connection'
+    });
+  } catch (error) {
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  console.log('[API] Mock DELETE request');
+  
+  try {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Using local data only - no database connection'
+    });
+  } catch (error) {
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}

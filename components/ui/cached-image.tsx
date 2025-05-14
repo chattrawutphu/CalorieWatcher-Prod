@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import Image, { ImageProps } from 'next/image';
-import { getCachedPostImage, savePostImageToCache } from '@/lib/utils/cache';
+import { getFromCache, saveToCache } from '@/lib/utils/cache';
+
+// Simple cache helpers for images
+const IMAGE_CACHE_PREFIX = 'img_cache_';
+
+function getCachedPostImage(imageUrl: string): string | null {
+  return getFromCache<string>(`${IMAGE_CACHE_PREFIX}${imageUrl}`);
+}
+
+function savePostImageToCache(imageUrl: string, dataUrl: string): void {
+  saveToCache(`${IMAGE_CACHE_PREFIX}${imageUrl}`, dataUrl, 7 * 24 * 60 * 60 * 1000); // 7 days
+}
 
 interface CachedImageProps extends Omit<ImageProps, 'src'> {
   src: string;

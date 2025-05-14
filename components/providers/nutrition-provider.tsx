@@ -2,190 +2,161 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNutritionStore } from "@/lib/store/nutrition-store";
-import { useSession } from "next-auth/react";
 
+// Define the NutritionStats type
 interface NutritionStats {
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
+  water: number;
+  percentCalories: number;
+  percentProtein: number;
+  percentCarbs: number;
+  percentFat: number;
+  percentWater: number;
 }
 
+// Define the context type
 interface NutritionContextType {
+  isDataLoaded: boolean;
   getTodayStats: () => NutritionStats;
-  goals: {
-    calories: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-    water: number;
-  };
-  recentMeals: Array<{
-    id: string;
-    name: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    date: string;
-    type: "breakfast" | "lunch" | "dinner" | "snack";
-    portion?: string;
-  }>;
-  meals: Array<any>;
-  updateDailyMood: (date: string, moodRating: number, notes?: string) => void;
-  getDailyMood: (date: string) => { moodRating?: number; notes?: string };
+  goals: any;
+  recentMeals: any[];
+  meals: any[];
+  isTodayEmpty: boolean;
+  getDailyMood: (date: string) => any;
   isLoading: boolean;
   error: string | null;
 }
 
-const NutritionContext = createContext<NutritionContextType | null>(null);
+// Create context with default value
+const NutritionContext = createContext<NutritionContextType>({
+  isDataLoaded: false,
+  getTodayStats: () => ({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    water: 0,
+    percentCalories: 0,
+    percentProtein: 0,
+    percentCarbs: 0,
+    percentFat: 0,
+    percentWater: 0
+  }),
+  goals: {},
+  recentMeals: [],
+  meals: [],
+  isTodayEmpty: true,
+  getDailyMood: () => null,
+  isLoading: false,
+  error: null
+});
 
-export function NutritionProvider({ children }: { children: React.ReactNode }) {
+// Custom hook to use the context
+export const useNutrition = () => useContext(NutritionContext);
+
+export function NutritionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { 
     dailyLogs, 
     goals, 
+    foodTemplates,
     currentDate,
-    updateDailyMood,
-    isLoading,
     isInitialized,
+    initializeData, 
+    isLoading, 
     error,
-    initializeData
+    getDailyMood
   } = useNutritionStore();
 
-  const { status } = useSession();
-  const isAuthenticated = status === 'authenticated';
-
-  // โหลดข้อมูลจาก API เมื่อผู้ใช้ล็อกอินแล้ว
   useEffect(() => {
-    // Only run this effect when the user is authenticated
-    if (!isAuthenticated) return;
-    
-    // Load data once on component mount
-    initializeData();
-    
-    // Return cleanup function (empty for this initialization effect)
-    return () => {};
-    // We intentionally leave dependencies empty to run only on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);  // Only depend on authentication status
-  
-  // Set up periodic sync in a separate effect
-  useEffect(() => {
-    // Only set up interval when authenticated
-    if (!isAuthenticated) return;
-    
-    // Create the interval for periodic syncs
-    const syncInterval = setInterval(() => {
-      // Only sync if not already loading
-      if (!isLoading) {
-        initializeData();
+    const loadData = async () => {
+      try {
+        await initializeData();
+        setIsDataLoaded(true);
+      } catch (error) {
+        console.error("Failed to initialize nutrition data:", error);
+        setIsDataLoaded(true); // Set to true anyway so UI renders
       }
-    }, 30000); // Sync every 30 seconds
-    
-    // Clean up the interval when component unmounts
-    return () => clearInterval(syncInterval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]); // Only depend on authentication status
+    };
+
+    loadData();
+  }, [initializeData]);
 
   const getTodayStats = (): NutritionStats => {
     const todayLog = dailyLogs[currentDate] || {
-      date: currentDate,
-      meals: [],
       totalCalories: 0,
       totalProtein: 0,
-      totalCarbs: 0,
-      totalFat: 0
+      totalCarbs: 0, 
+      totalFat: 0,
+      waterIntake: 0
     };
 
+    const goalCalories = goals?.calories || 2000;
+    const goalProtein = goals?.protein || 50;
+    const goalCarbs = goals?.carbs || 200;
+    const goalFat = goals?.fat || 70;
+    const goalWater = goals?.water || 2000;
+
     return {
-      calories: todayLog.totalCalories,
-      protein: todayLog.totalProtein,
-      carbs: todayLog.totalCarbs,
-      fat: todayLog.totalFat
+      calories: todayLog.totalCalories || 0,
+      protein: todayLog.totalProtein || 0,
+      carbs: todayLog.totalCarbs || 0,
+      fat: todayLog.totalFat || 0,
+      water: todayLog.waterIntake || 0,
+      percentCalories: Math.min(100, Math.round((todayLog.totalCalories / goalCalories) * 100)) || 0,
+      percentProtein: Math.min(100, Math.round((todayLog.totalProtein / goalProtein) * 100)) || 0,
+      percentCarbs: Math.min(100, Math.round((todayLog.totalCarbs / goalCarbs) * 100)) || 0,
+      percentFat: Math.min(100, Math.round((todayLog.totalFat / goalFat) * 100)) || 0,
+      percentWater: Math.min(100, Math.round((todayLog.waterIntake / goalWater) * 100)) || 0
     };
   };
 
-  // Get recent meals across all days, sorted by date (most recent first)
+  // Get meals for today
+  const getMealsForToday = () => {
+    const todayLog = dailyLogs[currentDate];
+    return todayLog?.meals || [];
+  };
+
+  // Get a few recent meals from all days
   const getRecentMeals = () => {
-    const allMeals: Array<any> = [];
+    const allMeals: any[] = [];
     
+    // Collect meals from all days
     Object.values(dailyLogs).forEach(log => {
-      log.meals.forEach(meal => {
-        allMeals.push({
-          id: meal.id,
-          name: meal.foodItem.name,
-          calories: meal.foodItem.calories * meal.quantity,
-          protein: meal.foodItem.protein * meal.quantity,
-          carbs: meal.foodItem.carbs * meal.quantity,
-          fat: meal.foodItem.fat * meal.quantity,
-          date: meal.date,
-          type: meal.mealType,
-          portion: `${meal.quantity} ${meal.foodItem.servingSize}`
-        });
-      });
+      log.meals.forEach(meal => allMeals.push(meal));
     });
     
-    // Sort by date (most recent first) and take only the most recent 5
+    // Sort by date (newest first) and take the first 5
     return allMeals
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
   };
 
-  // Get all meals for the current date
-  const getMeals = () => {
-    const todayLog = dailyLogs[currentDate] || {
-      date: currentDate,
-      meals: [],
-      totalCalories: 0,
-      totalProtein: 0,
-      totalCarbs: 0,
-      totalFat: 0
-    };
-
-    return todayLog.meals.map(meal => ({
-      id: meal.id,
-      name: meal.foodItem.name,
-      calories: meal.foodItem.calories * meal.quantity,
-      protein: meal.foodItem.protein * meal.quantity,
-      carbs: meal.foodItem.carbs * meal.quantity,
-      fat: meal.foodItem.fat * meal.quantity,
-      date: meal.date,
-      type: meal.mealType,
-      portion: `${meal.quantity} ${meal.foodItem.servingSize}`
-    }));
-  };
-
-  // Get mood data for a specific date
-  const getDailyMood = (date: string) => {
-    const log = dailyLogs[date];
-    return {
-      moodRating: log?.moodRating,
-      notes: log?.notes
-    };
-  };
+  // Determine if today is empty
+  const isTodayEmpty = !dailyLogs[currentDate] || !dailyLogs[currentDate].meals || dailyLogs[currentDate].meals.length === 0;
 
   return (
-    <NutritionContext.Provider 
+    <NutritionContext.Provider
       value={{
         getTodayStats,
         goals,
         recentMeals: getRecentMeals(),
-        meals: getMeals(),
-        updateDailyMood,
+        meals: getMealsForToday(),
+        isTodayEmpty,
         getDailyMood,
         isLoading,
-        error
+        error,
+        isDataLoaded
       }}
     >
       {children}
     </NutritionContext.Provider>
   );
-}
-
-export function useNutrition() {
-  const context = useContext(NutritionContext);
-  if (context === null) {
-    throw new Error("useNutrition must be used within a NutritionProvider");
-  }
-  return context;
 } 

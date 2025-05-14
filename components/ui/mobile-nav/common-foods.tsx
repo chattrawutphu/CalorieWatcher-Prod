@@ -9,7 +9,6 @@ import { FoodItem } from "@/lib/store/nutrition-store";
 import { useLanguage } from "@/components/providers/language-provider";
 import { aiAssistantTranslations } from "@/lib/translations/ai-assistant";
 import { USDAFoodItem, convertToAppFoodItem, FOOD_CATEGORIES, searchFoods, searchFoodsByCategory, SearchFoodResult } from "@/lib/api/usda-api";
-import { cacheService } from "@/lib/utils/cache-service";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { commonFoodTranslations } from "@/lib/translations/common-foods";
@@ -112,43 +111,28 @@ const CommonFoods = ({ onSelectFood, onBack }: CommonFoodsProps) => {
           dataTypes = ['Foundation', 'SR Legacy', 'Survey (FNDDS)', 'Branded', 'Experimental'];
       }
       
-      // ตรวจสอบแคชก่อน
-      const cacheKey = `${query}_${dataTypeFilter}_${loadPage}`;
-      const cachedResults = cacheService.getCachedFoodSearch(cacheKey, loadPage);
+      // เรียก API โดยตรง
+      const result = await searchFoods(query, loadPage, 20);
       
-      if (cachedResults) {
-        // ใช้ผลลัพธ์จากแคช
-        const formattedFoods = cachedResults.map((food: USDAFoodItem) => convertToAppFoodItem(food));
-        
-        setFoods(prevFoods => loadPage === 1 ? formattedFoods : [...prevFoods, ...formattedFoods]);
-        setHasMore(formattedFoods.length === 20); // สมมติว่าเรียก 20 รายการต่อหน้า
-      } else {
-        // เรียก API
-        const result = await searchFoods(query, loadPage, 20);
-        
-        // แคชผลลัพธ์
-        cacheService.cacheFoodSearch(cacheKey, loadPage, result.foods);
-        
-        // แปลงเป็นรูปแบบที่แอพใช้
-        const formattedFoods = result.foods.map((food: SearchFoodResult) => ({
-          id: food.fdcId.toString(),
-          name: food.description,
-          calories: getCalories(food),
-          protein: getNutrient(food, 'Protein'),
-          carbs: getNutrient(food, 'Carbohydrate, by difference'),
-          fat: getNutrient(food, 'Total lipid (fat)'),
-          servingSize: food.servingSize ? `${food.servingSize}${food.servingSizeUnit}` : "100g",
-          favorite: false,
-          createdAt: new Date().toISOString(),
-          category: food.foodCategory || 'Uncategorized',
-          usdaId: food.fdcId,
-          isTemplate: true,
-          dataType: food.dataType
-        }));
-        
-        setFoods(prevFoods => loadPage === 1 ? formattedFoods : [...prevFoods, ...formattedFoods]);
-        setHasMore(result.foods.length === 20); // สมมติว่าเรียก 20 รายการต่อหน้า
-      }
+      // แปลงเป็นรูปแบบที่แอพใช้
+      const formattedFoods = result.foods.map((food: SearchFoodResult) => ({
+        id: food.fdcId.toString(),
+        name: food.description,
+        calories: getCalories(food),
+        protein: getNutrient(food, 'Protein'),
+        carbs: getNutrient(food, 'Carbohydrate, by difference'),
+        fat: getNutrient(food, 'Total lipid (fat)'),
+        servingSize: food.servingSize ? `${food.servingSize}${food.servingSizeUnit}` : "100g",
+        favorite: false,
+        createdAt: new Date().toISOString(),
+        category: food.foodCategory || 'Uncategorized',
+        usdaId: food.fdcId,
+        isTemplate: true,
+        dataType: food.dataType
+      }));
+      
+      setFoods(prevFoods => loadPage === 1 ? formattedFoods : [...prevFoods, ...formattedFoods]);
+      setHasMore(result.foods.length === 20); // สมมติว่าเรียก 20 รายการต่อหน้า
     } catch (err) {
       console.error("Error searching foods:", err);
       setError("ไม่สามารถค้นหาอาหารได้ กรุณาลองอีกครั้ง");
@@ -261,43 +245,28 @@ const CommonFoods = ({ onSelectFood, onBack }: CommonFoodsProps) => {
         }
       }
       
-      // ตรวจสอบแคชก่อน
-      const cacheKey = subcat ? `${category}_${subcat}` : category;
-      const cachedResults = cacheService.getCachedFoodCategory(cacheKey, loadPage);
+      // เรียก API
+      const results = await searchFoods(searchTerm, loadPage, 20);
       
-      if (cachedResults) {
-        // ใช้ผลลัพธ์จากแคช
-        const formattedFoods = cachedResults.map((food: USDAFoodItem) => convertToAppFoodItem(food));
-        
-        setFoods(prevFoods => loadPage === 1 ? formattedFoods : [...prevFoods, ...formattedFoods]);
-        setHasMore(formattedFoods.length === 20);
-      } else {
-        // เรียก API
-        const results = await searchFoods(searchTerm, loadPage, 20);
-        
-        // แคชผลลัพธ์
-        cacheService.cacheFoodCategory(cacheKey, loadPage, results.foods);
-        
-        // แปลงเป็นรูปแบบที่แอพใช้
-        const formattedFoods = results.foods.map((food: SearchFoodResult) => ({
-          id: food.fdcId.toString(),
-          name: food.description,
-          calories: getCalories(food),
-          protein: getNutrient(food, 'Protein'),
-          carbs: getNutrient(food, 'Carbohydrate, by difference'),
-          fat: getNutrient(food, 'Total lipid (fat)'),
-          servingSize: food.servingSize ? `${food.servingSize}${food.servingSizeUnit}` : "100g",
-          favorite: false,
-          createdAt: new Date().toISOString(),
-          category: food.foodCategory || 'Uncategorized',
-          usdaId: food.fdcId,
-          isTemplate: true,
-          dataType: food.dataType
-        }));
-        
-        setFoods(prevFoods => loadPage === 1 ? formattedFoods : [...prevFoods, ...formattedFoods]);
-        setHasMore(results.foods.length === 20);
-      }
+      // แปลงเป็นรูปแบบที่แอพใช้
+      const formattedFoods = results.foods.map((food: SearchFoodResult) => ({
+        id: food.fdcId.toString(),
+        name: food.description,
+        calories: getCalories(food),
+        protein: getNutrient(food, 'Protein'),
+        carbs: getNutrient(food, 'Carbohydrate, by difference'),
+        fat: getNutrient(food, 'Total lipid (fat)'),
+        servingSize: food.servingSize ? `${food.servingSize}${food.servingSizeUnit}` : "100g",
+        favorite: false,
+        createdAt: new Date().toISOString(),
+        category: food.foodCategory || 'Uncategorized',
+        usdaId: food.fdcId,
+        isTemplate: true,
+        dataType: food.dataType
+      }));
+      
+      setFoods(prevFoods => loadPage === 1 ? formattedFoods : [...prevFoods, ...formattedFoods]);
+      setHasMore(results.foods.length === 20);
     } catch (err) {
       console.error(`Error loading foods for category ${category}:`, err);
       setError("ไม่สามารถโหลดข้อมูลอาหารได้ กรุณาลองอีกครั้ง");

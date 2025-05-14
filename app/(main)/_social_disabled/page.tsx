@@ -43,18 +43,51 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useSession } from "next-auth/react";
 import CachedImage from "@/components/ui/cached-image";
-import { 
-  getCachedPosts, 
-  savePostsToCache, 
-  savePostImageToCache, 
-  getCachedProfileData, 
-  saveProfileDataToCache 
-} from "@/lib/utils/cache";
 import { useLanguage } from "@/components/providers/language-provider";
 import { socialTranslations, formatTranslation } from "@/app/locales/social";
 import { formatDate } from "@/lib/utils/format-date";
+import { getFromCache, saveToCache } from "@/lib/utils/cache";
+
+// Local storage keys for posts and profiles
+const POSTS_CACHE_KEY = 'social_posts';
+const PROFILE_CACHE_KEY = 'social_profile';
+
+// Simple replacement functions for the missing cache functions
+function getCachedPosts(): any[] {
+  return getFromCache<any[]>(POSTS_CACHE_KEY) || [];
+}
+
+function savePostsToCache(posts: any[]) {
+  saveToCache(POSTS_CACHE_KEY, posts);
+}
+
+function savePostImageToCache(postId: string, imageIndex: number, dataUrl: string) {
+  const posts = getCachedPosts();
+  const updatedPosts = posts.map(post => {
+    if (post.id === postId) {
+      if (!post.imageCache) post.imageCache = {};
+      post.imageCache[`${imageIndex}`] = dataUrl;
+    }
+    return post;
+  });
+  savePostsToCache(updatedPosts);
+}
+
+function getCachedProfileData(): any {
+  return getFromCache<any>(PROFILE_CACHE_KEY) || DEFAULT_USER;
+}
+
+function saveProfileDataToCache(profileData: any) {
+  saveToCache(PROFILE_CACHE_KEY, profileData);
+}
+
+// Add a new function for saving profile images to cache
+function saveProfileImageToCache(profileId: string, dataUrl: string) {
+  const profile = getCachedProfileData();
+  profile.profileImageBase64 = dataUrl;
+  saveProfileDataToCache(profile);
+}
 
 // Default user data structure
 const DEFAULT_USER = {
@@ -733,7 +766,6 @@ const item = {
 };
 
 export default function SocialClub() {
-  const { data: session, status } = useSession();
   const { locale } = useLanguage();
   const t = socialTranslations[locale as keyof typeof socialTranslations] || socialTranslations.en;
   
@@ -754,12 +786,9 @@ export default function SocialClub() {
 
   // Fetch user data
     const fetchUserData = async () => {
-    if (status === "loading") return;
+    if (isLoading) return;
     
-    if (status !== "authenticated") {
-      setUserData(DEFAULT_USER);
-      return;
-    }
+    if (isLoading) return;
     
     // Use cached data first
     const cachedProfile = getCachedProfileData();
@@ -781,7 +810,7 @@ export default function SocialClub() {
         
         // Save profile image to cache (if exists)
         if (data.user.profileImageBase64) {
-          savePostImageToCache(data.user.profileImage, data.user.profileImageBase64);
+          saveProfileImageToCache(data.user.id, data.user.profileImageBase64);
         }
         }
       } catch (error) {
@@ -791,13 +820,9 @@ export default function SocialClub() {
 
   // Fetch posts
   const fetchPosts = async (useCacheOnly = false) => {
-    if (status === "loading") return;
+    if (isLoading) return;
     
-    if (status !== "authenticated") {
-      setPosts([]);
-        setIsLoading(false);
-      return;
-    }
+    if (isLoading) return;
     
     try {
       // Show posts from cache first
@@ -826,7 +851,11 @@ export default function SocialClub() {
         data.posts.forEach((post: Post) => {
           if (post.imageCache) {
             Object.entries(post.imageCache).forEach(([url, base64]) => {
-              savePostImageToCache(url, base64 as string);
+              const postId = post.id;
+              const imageIndex = parseInt(url);
+              if (!isNaN(imageIndex)) {
+                savePostImageToCache(postId, imageIndex, base64 as string);
+              }
             });
           }
         });
@@ -851,7 +880,7 @@ export default function SocialClub() {
     
     // Then fetch new data
     fetchPosts();
-  }, [status]);
+  }, []);
 
   // Function to handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -925,15 +954,6 @@ export default function SocialClub() {
 
   // Function to handle post creation
   const handleCreatePost = async () => {
-    if (!session || !session.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to create a post.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     if (!newPostContent.trim() && postImages.length === 0) {
       toast({
         title: "Empty post",
@@ -1016,20 +1036,11 @@ export default function SocialClub() {
 
   // Function to handle post liking
   const handleLikePost = async (postId: string) => {
-    if (!session || !session.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to like posts.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     try {
       // Optimistic update
       const updatedPosts = posts.map((post) => {
         if (post.id === postId) {
-          const userId = session.user?.id as string;
+          const userId = userData.id;
           const alreadyLiked = post.likedBy.includes(userId);
           
           return {
@@ -1082,15 +1093,6 @@ export default function SocialClub() {
 
   // Function to add a comment to a post
   const handleAddComment = async (postId: string, commentContent: string) => {
-    if (!session || !session.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to comment on posts.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     if (!commentContent.trim()) {
       toast({
         title: "Empty comment",
@@ -1154,7 +1156,7 @@ export default function SocialClub() {
   // Function to navigate to user profile
   const goToProfile = (userId: string) => {
     // Check if it's the current user
-    if (session?.user?.id === userId) {
+    if (userData.id === userId) {
       router.push("/social/profile");
     } else {
       router.push(`/social/profile/${userId}`);
@@ -1162,8 +1164,7 @@ export default function SocialClub() {
   };
 
   const isPostLikedByUser = (post: Post) => {
-    if (!session || !session.user) return false;
-    return post.likedBy.includes(session.user.id as string);
+    return post.likedBy.includes(userData.id);
   };
 
   const renderCommentForm = (postId: string) => {
@@ -1196,15 +1197,15 @@ export default function SocialClub() {
     );
   };
 
-  if (status === "loading" || isLoading) {
-  return (
-    <Container>
-        <div className="mt-8 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-          <span className="ml-2">{t.loading}</span>
-        </div>
-      </Container>
-    );
+  // Fix the sign-out action in the profile section
+  const handleSignOut = () => {
+    router.push('/dashboard');
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">
+      <RefreshCw className="w-10 h-10 animate-spin text-primary" />
+    </div>;
   }
 
   return (
@@ -1271,9 +1272,9 @@ export default function SocialClub() {
                     <HelpCircle className="mr-2 h-4 w-4" />
                     <span>Help</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push("/auth/signin")}>
+                  <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
+                    <span>{t.signOut}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

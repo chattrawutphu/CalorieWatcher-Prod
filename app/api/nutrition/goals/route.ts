@@ -1,62 +1,90 @@
+
 import { NextRequest, NextResponse } from 'next/server';
-import auth from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
-import { connectToDatabase } from '@/lib/mongoose';
-import NutritionModel from '@/lib/models/nutrition';
-import { headers } from 'next/headers';
 
-export async function PUT(request: NextRequest) {
+export async function GET(request: NextRequest) {
+  console.log('[API] Mock GET request');
+  
   try {
-    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้ว
-    const session = await auth(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
-    const goals = await request.json();
-
-    // ตรวจสอบข้อมูล
-    if (!goals) {
-      return NextResponse.json(
-        { success: false, message: 'No goals data provided' },
-        { status: 400 }
-      );
-    }
-
-    await connectToDatabase();
-
-    // อัพเดทข้อมูลเป้าหมาย
-    const result = await NutritionModel.findOneAndUpdate(
-      { userId },
-      { $set: { goals } },
-      { upsert: true, new: true }
-    );
-
-    if (!result) {
-      return NextResponse.json(
-        { success: false, message: 'Failed to update goals' },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({ 
-      success: true, 
-      message: 'Goals updated successfully',
-      data: result.goals
+      success: true,
+      message: "Using local data only - no database connection"
     });
   } catch (error) {
-    console.error('Error updating goals:', error);
+    console.error('[API] Error in mock endpoint:', error);
+    
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Failed to update goals',
+        message: 'Failed to process request',
         error: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     );
   }
-} 
+}
+
+export async function POST(request: NextRequest) {
+  console.log('[API] Mock POST request');
+  
+  try {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Using local data only - no database connection'
+    });
+  } catch (error) {
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  console.log('[API] Mock PUT request');
+  
+  try {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Using local data only - no database connection'
+    });
+  } catch (error) {
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  console.log('[API] Mock DELETE request');
+  
+  try {
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Using local data only - no database connection'
+    });
+  } catch (error) {
+    console.error('[API] Error in mock endpoint:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process request',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}

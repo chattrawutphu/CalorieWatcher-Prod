@@ -279,8 +279,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const { locale } = useLanguage();
   const t = dashboardTranslations[locale as keyof typeof dashboardTranslations] || dashboardTranslations.en;
-  const { getTodayStats, goals, recentMeals = [], updateDailyMood, getDailyMood } = useNutrition();
-  const { dailyLogs, setCurrentDate, currentDate } = useNutritionStore();
+  const { getTodayStats, goals, recentMeals = [], getDailyMood } = useNutrition();
+  const { dailyLogs, setCurrentDate, currentDate, updateDailyMood } = useNutritionStore();
   const dragControls = useDragControls();
   
   // เพิ่ม usePopups hook
@@ -575,9 +575,9 @@ export default function DashboardPage() {
 
   // Update mood and notes when selected date changes
   useEffect(() => {
-    const { moodRating: currentMoodRating, notes: currentNotes } = getDailyMood(selectedDate);
-    setMoodRating(currentMoodRating);
-    setNotes(currentNotes || "");
+    const moodData = getDailyMood(selectedDate) || { moodRating: undefined, notes: "" };
+    setMoodRating(moodData.moodRating);
+    setNotes(moodData.notes || "");
     setSaved(false);
   }, [selectedDate, getDailyMood]);
 

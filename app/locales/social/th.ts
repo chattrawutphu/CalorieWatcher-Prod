@@ -51,4 +51,5 @@ export const socialTranslations = {
   dayAgo: "1 วันที่แล้ว",
   daysAgo: "{count} วันที่แล้ว",
   edited: "แก้ไขแล้ว",
+  signOut: "ออกจากระบบ",
 }; 

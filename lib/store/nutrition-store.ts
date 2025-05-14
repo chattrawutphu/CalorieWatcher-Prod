@@ -191,18 +191,13 @@ interface NutritionState {
   // Current day tracking
   currentDate: string; // ISO string for the currently selected date
   
-  // Syncing state
+  // State tracking
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
-  lastSyncTime: string | null; // เพิ่ม timestamp ล่าสุดที่ซิงค์
   
   // Actions
   initializeData: () => Promise<void>;
-  syncData: () => Promise<void>;
-  // เพิ่มฟังก์ชันตรวจสอบว่าสามารถซิงค์ได้หรือไม่
-  canSync: () => boolean;
-  isSyncOnCooldown: () => boolean;
   
   // Data management
   clearTodayData: () => void; // เพิ่มฟังก์ชันล้างข้อมูลล่าสุดของวันนี้
@@ -240,9 +235,6 @@ interface NutritionState {
   getWeightEntry: (date: string) => WeightEntry | undefined;
   getWeightEntries: (limit?: number) => WeightEntry[];
   getWeightGoal: () => number | undefined;
-  
-  // ฟังก์ชันสำหรับรวมข้อมูลจาก server และ local
-  mergeData: (localData: any, serverData: any) => any;
 }
 
 export const useNutritionStore = create<NutritionState>()(
@@ -264,7 +256,6 @@ export const useNutritionStore = create<NutritionState>()(
       isLoading: false,
       isInitialized: false,
       error: null,
-      lastSyncTime: null, // เพิ่ม timestamp ล่าสุดที่ซิงค์
       
       // Initialize data
       initializeData: async () => {
@@ -298,573 +289,35 @@ export const useNutritionStore = create<NutritionState>()(
         }
       },
       
-      // เพิ่มฟังก์ชันตรวจสอบว่าสามารถซิงค์ได้หรือไม่
-      canSync: () => {
-        const { isLoading, lastSyncTime } = get();
+      // Data management
+      clearTodayData: () => {
+        const { currentDate, dailyLogs } = get();
+        const today = dailyLogs[currentDate];
         
-        // ถ้ากำลังโหลดข้อมูลอยู่ ไม่อนุญาตให้ซิงค์อีก
-        if (isLoading) return false;
+        // ถ้าไม่มีข้อมูลวันนี้ ไม่ต้องทำอะไร
+        if (!today) return;
         
-        // ตรวจสอบประวัติการซิงค์ใน localStorage
-        try {
-          // ดึงประวัติการซิงค์
-          const syncHistoryJSON = localStorage.getItem('sync-history');
-          const syncHistory = syncHistoryJSON ? JSON.parse(syncHistoryJSON) : [];
-          
-          // กรองรายการซิงค์ในช่วง 3 นาทีที่ผ่านมา
-          const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
-          const recentSyncs = syncHistory.filter((timestamp: number) => timestamp > threeMinutesAgo);
-          
-          // ถ้ามีการซิงค์มากกว่า 5 ครั้งใน 3 นาที ไม่อนุญาตให้ซิงค์
-          if (recentSyncs.length >= 5) {
-            // คำนวณเวลาที่ต้องรอ - หาเวลาซิงค์แรกสุดในช่วง 3 นาทีล่าสุด
-            if (recentSyncs.length > 0) {
-              const oldestSync = Math.min(...recentSyncs);
-              const timeToWait = (oldestSync + (3 * 60 * 1000)) - Date.now();
-              
-              // บันทึกเวลารอไว้ใน localStorage เพื่อใช้แสดงให้ผู้ใช้
-              localStorage.setItem('sync-cooldown-until', String(Date.now() + timeToWait));
+        // คัดลอกข้อมูลเดิมแต่ล้างมื้ออาหารและคำนวณค่าโภชนาการใหม่
+        set((state) => ({
+          dailyLogs: {
+            ...state.dailyLogs,
+            [currentDate]: {
+              ...today,
+              meals: [], // ล้างมื้ออาหารทั้งหมด
+              totalCalories: 0, // รีเซ็ตค่าแคลอรี่
+              totalProtein: 0, // รีเซ็ตค่าโปรตีน
+              totalFat: 0, // รีเซ็ตค่าไขมัน
+              totalCarbs: 0, // รีเซ็ตค่าคาร์โบไฮเดรต
+              lastModified: new Date().toISOString() // อัปเดทเวลาแก้ไข
             }
-            return false;
           }
-        } catch (error) {
-          console.error('Error checking sync history:', error);
-        }
+        }));
         
-        // ถ้าไม่เคยซิงค์มาก่อน หรือไม่มี lastSyncTime อนุญาตให้ซิงค์ได้ทันที
-        if (!lastSyncTime) return true;
-        
-        // ตรวจสอบช่วงเวลา cooldown (5 วินาที)
-        const lastSync = new Date(lastSyncTime).getTime();
-        const now = Date.now();
-        const cooldownPeriod = 5000; // 5 วินาที
-        
-        return (now - lastSync) > cooldownPeriod;
-      },
-      
-      // เพิ่มฟังก์ชันตรวจสอบว่าอยู่ในช่วง cooldown หรือไม่
-      isSyncOnCooldown: () => {
-        const { lastSyncTime } = get();
-        
-        // ตรวจสอบประวัติการซิงค์ใน localStorage
-        try {
-          // ดึงประวัติการซิงค์
-          const syncHistoryJSON = localStorage.getItem('sync-history');
-          const syncHistory = syncHistoryJSON ? JSON.parse(syncHistoryJSON) : [];
-          
-          // กรองรายการซิงค์ในช่วง 3 นาทีที่ผ่านมา
-          const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
-          const recentSyncs = syncHistory.filter((timestamp: number) => timestamp > threeMinutesAgo);
-          
-          // ถ้ามีการซิงค์มากกว่า 5 ครั้งใน 3 นาที ถือว่าอยู่ในช่วง cooldown
-          if (recentSyncs.length >= 5) {
-            // คำนวณเวลาที่ต้องรอ - หาเวลาซิงค์แรกสุดในช่วง 3 นาทีล่าสุด
-            if (recentSyncs.length > 0) {
-              const oldestSync = Math.min(...recentSyncs);
-              const timeToWait = (oldestSync + (3 * 60 * 1000)) - Date.now();
-              
-              // บันทึกเวลารอไว้ใน localStorage เพื่อแสดงให้ผู้ใช้
-              localStorage.setItem('sync-cooldown-until', String(Date.now() + timeToWait));
-              return true;
-            }
-          } else {
-            // ลบเวลารอถ้าไม่ได้อยู่ในช่วง cooldown
-            localStorage.removeItem('sync-cooldown-until');
-          }
-        } catch (error) {
-          console.error('Error checking sync history:', error);
-        }
-        
-        // ถ้าไม่เคยซิงค์มาก่อน หรือไม่มี lastSyncTime แสดงว่าไม่อยู่ใน cooldown
-        if (!lastSyncTime) return false;
-        
-        // ตรวจสอบช่วงเวลา cooldown (5 วินาที)
-        const lastSync = new Date(lastSyncTime).getTime();
-        const now = Date.now();
-        const cooldownPeriod = 5000; // 5 วินาที
-        
-        return (now - lastSync) <= cooldownPeriod;
-      },
-      
-      // Sync data with server (if needed)
-      syncData: async () => {
-        // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่
-        if (!get().canSync()) {
-          console.log('[Sync] Sync operation is currently on cooldown or in progress');
-          
-          // ตรวจสอบถ้าอยู่ในช่วง cooldown จากการซิงค์มากเกินไป
-          try {
-            const cooldownUntil = localStorage.getItem('sync-cooldown-until');
-            if (cooldownUntil) {
-              const endTime = parseInt(cooldownUntil, 10);
-              const now = Date.now();
-              if (endTime > now) {
-                // ยังอยู่ในช่วง cooldown
-                const remainingMs = endTime - now;
-                const remainingMinutes = Math.ceil(remainingMs / 60000);
-                
-                // ใช้โค้ด showToast เพื่อแสดงข้อความเตือน โดยใช้ locale จาก TranslationContext
-                const locale = localStorage.getItem('app-locale') || 'en';
-                
-                // เตรียมข้อความตามภาษาที่ใช้
-                const title = locale === 'en' ? 'Syncing too frequently' : 
-                       locale === 'th' ? 'รีเฟรชข้อมูลบ่อยเกินไป' : 
-                       locale === 'ja' ? '同期が頻繁すぎます' : '同步频率过高';
-                       
-                const description = locale === 'en' ? `You're syncing too frequently. Please wait about ${remainingMinutes} minutes.` : 
-                            locale === 'th' ? `คุณรีเฟรชข้อมูลบ่อยเกินไป โปรดรอประมาณ ${remainingMinutes} นาที` : 
-                            locale === 'ja' ? `同期が頻繁すぎます。約${remainingMinutes}分お待ちください。` : 
-                            `同步频率过高，请等待约${remainingMinutes}分钟。`;
-                
-                // แสดง Toast แจ้งเตือน
+        // แสดง toast แจ้งเตือน
                 showToast(
-                  'sync.tooFrequent',
-                  'sync.tooFrequentDesc',
-                  { minutes: String(remainingMinutes) },
-                  'destructive'
-                );
-              }
-            }
-          } catch (error) {
-            console.error('Error checking sync cooldown:', error);
-          }
-          
-          return;
-        }
-        
-        try {
-          set({ isLoading: true, error: null });
-          
-          // บันทึกเวลาเริ่มต้นซิงค์
-          const syncStartTime = new Date().toISOString();
-          set({ lastSyncTime: syncStartTime });
-          
-          // บันทึกประวัติการซิงค์
-          try {
-            const syncHistoryJSON = localStorage.getItem('sync-history');
-            const syncHistory = syncHistoryJSON ? JSON.parse(syncHistoryJSON) : [];
-            syncHistory.push(Date.now());
-            
-            // เก็บประวัติแค่ 30 รายการล่าสุด
-            if (syncHistory.length > 30) {
-              syncHistory.splice(0, syncHistory.length - 30);
-            }
-            
-            localStorage.setItem('sync-history', JSON.stringify(syncHistory));
-          } catch (error) {
-            console.error('Error updating sync history:', error);
-          }
-          
-          // เช็คการเชื่อมต่ออินเตอร์เน็ตและแสดงข้อความเตือนที่ชัดเจน
-          if (!navigator.onLine) {
-            console.warn('[Sync] No internet connection, skipping sync');
-            set({ isLoading: false, error: 'No internet connection' });
-            
-            // แสดง Toast แจ้งเตือนว่าไม่มีการเชื่อมต่ออินเทอร์เน็ต
-            showToast(
-              'sync.noInternet',
-              'sync.noInternetDesc',
-              {},
-              'destructive'
-            );
-            
-            return;
-          }
-          
-          // เก็บเวลาเริ่มต้น
-          const startTime = performance.now();
-          console.log(`[Sync] Starting data synchronization at ${new Date().toISOString()}`);
-          
-          // 1. ดึงข้อมูลจาก localStorage
-          const localData = get();
-          
-          // 2. ดึงข้อมูลจาก server - กำหนดค่า timeout ที่เหมาะสม
-          const fetchStartTime = performance.now();
-          console.log(`[Sync] Starting database fetch at ${new Date().toISOString()}`);
-          
-          const fetchController = new AbortController();
-          const timeoutId = setTimeout(() => fetchController.abort(), 10000);
-          
-          try {
-            // ตรวจสอบหรือรีเฟรช session ก่อนเรียกใช้ API
-            // ใช้ credentials: 'include' เพื่อส่ง cookies ไปด้วย
-            const response = await fetch('/api/nutrition', {
-              credentials: 'include', // ส่ง cookies ไปด้วย
-              headers: {
-                'Cache-Control': 'no-cache',
-                'Content-Type': 'application/json'
-              },
-              signal: fetchController.signal
-            });
-            
-            const fetchEndTime = performance.now();
-            const fetchDuration = (fetchEndTime - fetchStartTime).toFixed(2);
-            console.log(`[Sync] Database fetch completed in ${fetchDuration}ms`);
-            
-            // จัดการกรณี session timeout หรือ authentication error
-            if (response.status === 401) {
-              console.error('[Sync] Authentication error: Session may be expired');
-              window.dispatchEvent(new CustomEvent('auth-error', { detail: { code: 401 }}));
-              set({ isLoading: false, error: 'Authentication error: Please log in again' });
-              
-              // แสดง Toast แจ้งเตือนว่าต้องล็อกอินใหม่
-              showToast(
-                'sync.authError',
-                'sync.authErrorDesc',
-                {},
-                'destructive'
-              );
-              
-              return;
-            }
-            
-            if (!response.ok) {
-              console.error(`[Sync] Server returned error: ${response.status} ${response.statusText}`);
-              
-              // แสดง Toast แจ้งเตือนว่าเกิดข้อผิดพลาดในการซิงค์
-              showToast(
-                'sync.syncFailed',
-                'sync.syncFailedDesc',
-                {},
-                'destructive'
-              );
-              
-              throw new Error(`Failed to fetch server data: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            // ตรวจสอบว่าข้อมูลมี data หรือไม่
-            if (!result.success) {
-              showToast(
-                'sync.syncFailed',
-                'sync.syncFailedDesc',
-                {},
-                'destructive'
-              );
-              
-              throw new Error(result.message || 'Unknown server error');
-            }
-            
-            // ถ้าไม่มีการอัพเดต ให้หยุดทำงาน
-            if (result.hasUpdates === false) {
-              console.log('[Sync] No updates needed, server data is up to date');
-              localStorage.setItem('last-server-sync-time', result.lastSync);
-              set({ isLoading: false });
-              return;
-            }
-            
-            const { data: serverData } = result;
-            
-            // 3. เช็คว่ามีข้อมูลใหม่หรือไม่ โดยเปรียบเทียบ timestamp
-            const lastServerSync = localStorage.getItem('last-server-sync-time');
-            const lastLocalUpdate = localStorage.getItem('last-local-update-time');
-            
-            console.log(`[Sync] Last server sync: ${lastServerSync || 'never'}`);
-            console.log(`[Sync] Last local update: ${lastLocalUpdate || 'never'}`);
-            
-            // 4. ตัดสินใจว่าจะใช้ข้อมูลจากที่ไหน
-            let finalData = { ...localData };
-            let needsServerUpdate = false;
-            let needsLocalUpdate = false;
-            
-            // ถ้าไม่เคยซิงค์กับ server มาก่อน หรือข้อมูลใน localStorage มีการอัพเดทล่าสุด
-            if (!lastServerSync || (lastLocalUpdate && new Date(lastLocalUpdate) > new Date(lastServerSync))) {
-              console.log('[Sync] Local data is newer, updating server');
-              needsServerUpdate = true;
-            } 
-            // ถ้า server มีข้อมูลใหม่กว่า
-            else if (serverData.updatedAt && (!lastLocalUpdate || new Date(serverData.updatedAt) > new Date(lastLocalUpdate))) {
-              console.log('[Sync] Server data is newer, updating local data');
-              needsLocalUpdate = true;
-              
-              // อัพเดทข้อมูลท้องถิ่นด้วยข้อมูลจาก server
-              finalData = get().mergeData(localData, serverData);
-            }
-            
-            // 5. อัพเดทข้อมูลที่จำเป็น
-            // ถ้า server มีข้อมูลใหม่กว่า ให้อัพเดทข้อมูลท้องถิ่น
-            if (needsLocalUpdate) {
-              set(finalData);
-              
-              // อัพเดท timestamp เป็นเวลาล่าสุดที่ได้จาก server
-              localStorage.setItem('last-server-sync-time', new Date().toISOString());
-              
-              // แสดง Toast แจ้งเตือนว่าอัพเดทเซิร์ฟเวอร์สำเร็จ
-              // โค้ดส่วนนี้ถูกลบเพื่อไม่แสดง toast เมื่ออัปเดทสำเร็จ
-              // showToast(
-              //   'sync.uploadSuccess',
-              //   'sync.uploadSuccessDesc',
-              //   {},
-              //   'default'
-              // );
-            }
-            
-            // ถ้าข้อมูลท้องถิ่นมีการอัพเดทล่าสุด ให้อัพเดทข้อมูลไปที่ server
-            if (needsServerUpdate) {
-              // บันทึกเวลาเริ่มต้นการอัพเดทข้อมูลไปยัง server
-              const updateStartTime = performance.now();
-              console.log(`[Sync] Starting database update at ${new Date().toISOString()}`);
-              
-              // ส่งข้อมูลไปยัง server
-              const updateResponse = await fetch('/api/nutrition', {
-                method: 'POST',
-                credentials: 'include', // ส่ง cookies ไปด้วย
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Cache-Control': 'no-cache'
-                },
-                body: JSON.stringify({
-                  ...localData,
-                  updatedAt: new Date().toISOString(),
-                }),
-              });
-              
-              const updateEndTime = performance.now();
-              const updateDuration = (updateEndTime - updateStartTime).toFixed(2);
-              console.log(`[Sync] Database update completed in ${updateDuration}ms`);
-              
-              // จัดการกรณี session timeout หรือ authentication error
-              if (updateResponse.status === 401) {
-                console.error('[Sync] Authentication error during POST: Session may be expired');
-                window.dispatchEvent(new CustomEvent('auth-error', { detail: { code: 401 }}));
-                set({ isLoading: false, error: 'Authentication error: Please log in again' });
-                
-                // แสดง Toast แจ้งเตือนว่าต้องล็อกอินใหม่
-                showToast(
-                  'sync.authError',
-                  'sync.authErrorDesc',
-                  {},
-                  'destructive'
-                );
-                
-                return;
-              }
-              
-              if (!updateResponse.ok) {
-                console.error(`[Sync] Update server error: ${updateResponse.status} ${updateResponse.statusText}`);
-                
-                // แสดง Toast แจ้งเตือนว่าเกิดข้อผิดพลาดในการอัพเดทเซิร์ฟเวอร์
-                showToast(
-                  'sync.updateFailed',
-                  'sync.updateFailedDesc',
-                  {},
-                  'destructive'
-                );
-                
-                throw new Error(`Failed to update server data: ${updateResponse.status}`);
-              }
-              
-              // อัพเดท timestamp เป็นเวลาปัจจุบัน
-              const now = new Date().toISOString();
-              localStorage.setItem('last-server-sync-time', now);
-              localStorage.setItem('last-local-update-time', now);
-              
-              console.log(`[Sync] Server update successful: ${now}`);
-            }
-            
-            const endTime = performance.now();
-            const totalDuration = (endTime - startTime).toFixed(2);
-            console.log(`[Sync] Synchronization completed successfully in ${totalDuration}ms`);
-            
-            set({ isLoading: false });
-            
-            // ถ้ามีการซิงค์ข้อมูล แสดง Toast เพียงครั้งเดียว
-            if (!needsLocalUpdate && !needsServerUpdate) {
-              // แสดง Toast แจ้งเตือนว่าข้อมูลเป็นปัจจุบันแล้ว
-              // โค้ดส่วนนี้ถูกลบเพื่อไม่แสดง toast เมื่อข้อมูลเป็นปัจจุบันแล้ว
-              // showToast(
-              //   'sync.upToDate',
-              //   'sync.upToDateDesc',
-              //   {},
-              //   'default'
-              // );
-            }
-          } catch (fetchError) {
-            clearTimeout(timeoutId);
-            // จัดการกรณี timeout หรือ network error
-            if (fetchError && typeof fetchError === 'object' && 'name' in fetchError && fetchError.name === 'AbortError') {
-              console.error('[Sync] Request timed out after 10 seconds');
-              set({ isLoading: false, error: 'Request timed out. Please try again later.' });
-              
-              // แสดง Toast แจ้งเตือนว่าการเชื่อมต่อหมดเวลา
-              showToast(
-                'sync.timeout',
-                'sync.timeoutDesc',
-                {},
-                'destructive'
-              );
-            } else {
-              throw fetchError; // โยนข้อผิดพลาดไปยัง catch ด้านนอก
-            }
-          }
-        } catch (error) {
-          const endTime = performance.now();
-          const startTime = performance.now() - 1; // Fallback in case startTime wasn't set
-          const totalDuration = (endTime - startTime).toFixed(2);
-          
-          console.error(`[Sync] Error during synchronization after ${totalDuration}ms:`, error);
-          set({ isLoading: false, error: error instanceof Error ? error.message : 'Failed to sync data' });
-          
-          // แสดง Toast แจ้งเตือนว่าเกิดข้อผิดพลาดในการซิงค์
-          showToast(
-            'sync.syncFailed',
-            'sync.syncFailedDesc',
-            {},
-            'destructive'
-          );
-        }
-      },
-      
-      // ฟังก์ชันสำหรับรวมข้อมูลจาก server และ local
-      mergeData: (localData, serverData) => {
-        const merged = { ...serverData };
-        
-        // รวมข้อมูล dailyLogs
-        const mergedLogs = { ...serverData.dailyLogs || {} };
-        
-        // ตรวจสอบและรวมข้อมูลจาก dailyLogs ท้องถิ่น
-        for (const date in localData.dailyLogs) {
-          const localLog = localData.dailyLogs[date];
-          const serverLog = serverData.dailyLogs ? serverData.dailyLogs[date] : undefined;
-          
-          // ถ้า server ไม่มีข้อมูลของวันนี้ ให้ใช้ข้อมูลจาก local
-          if (!serverLog) {
-            mergedLogs[date] = localLog;
-            continue;
-          }
-          
-          // ถ้ามีทั้งคู่ ให้รวมข้อมูล
-          const localLastModified = localLog.lastModified ? new Date(localLog.lastModified) : new Date(0);
-          const serverLastModified = serverLog.lastModified ? new Date(serverLog.lastModified) : new Date(0);
-          
-          // ใช้ข้อมูลที่ใหม่กว่า
-          if (localLastModified > serverLastModified) {
-            mergedLogs[date] = localLog;
-          } else {
-            mergedLogs[date] = serverLog;
-          }
-          
-          // รวมข้อมูลมื้ออาหาร - ให้รวมมื้ออาหารจากทั้ง local และ server
-          const mergedMeals = [...(serverLog.meals || [])];
-          
-          // ตรวจสอบว่ามีมื้ออาหารใน local ที่ไม่มีใน server หรือไม่
-          if (localLog.meals) {
-            for (const localMeal of localLog.meals) {
-              // ตรวจสอบว่ามื้ออาหารนี้มีอยู่ใน server หรือไม่
-              const existsInServer = mergedMeals.some(serverMeal => serverMeal.id === localMeal.id);
-              
-              // ถ้าไม่มี ให้เพิ่มเข้าไป
-              if (!existsInServer) {
-                mergedMeals.push(localMeal);
-              }
-            }
-          }
-          
-          // ใช้วิธีคำนวณยอดรวมใหม่
-          const totals = mergedMeals.reduce(
-            (acc, meal) => {
-              const quantity = meal.quantity || 1;
-              acc.totalCalories += meal.foodItem.calories * quantity;
-              acc.totalProtein += meal.foodItem.protein * quantity;
-              acc.totalFat += meal.foodItem.fat * quantity;
-              acc.totalCarbs += meal.foodItem.carbs * quantity;
-              return acc;
-            },
-            { totalCalories: 0, totalProtein: 0, totalFat: 0, totalCarbs: 0 }
-          );
-          
-          // อัพเดท mergedLogs กับข้อมูลที่รวมแล้ว
-          mergedLogs[date] = {
-            ...mergedLogs[date],
-            meals: mergedMeals,
-            ...totals,
-            lastModified: new Date().toISOString() // อัพเดท timestamp
-          };
-        }
-        
-        merged.dailyLogs = mergedLogs;
-        
-        // รวมข้อมูล food templates
-        if (localData.foodTemplates && serverData.foodTemplates) {
-          const mergedTemplates = [...serverData.foodTemplates];
-          
-          // ตรวจสอบว่ามี template ใน local ที่ไม่มีใน server หรือไม่
-          for (const localTemplate of localData.foodTemplates) {
-            // ตรวจสอบว่า template นี้มีอยู่ใน server หรือไม่
-            const existingTemplateIndex = mergedTemplates.findIndex(t => t.id === localTemplate.id);
-            
-            if (existingTemplateIndex === -1) {
-              // ถ้าไม่มี ให้เพิ่มเข้าไป
-              mergedTemplates.push(localTemplate);
-            } else {
-              // ถ้ามีแล้ว ให้ใช้อันที่ใหม่กว่า
-              const serverTemplate = mergedTemplates[existingTemplateIndex];
-              const localLastModified = localTemplate.lastModified ? new Date(localTemplate.lastModified) : new Date(0);
-              const serverLastModified = serverTemplate.lastModified ? new Date(serverTemplate.lastModified) : new Date(0);
-              
-              if (localLastModified > serverLastModified) {
-                mergedTemplates[existingTemplateIndex] = localTemplate;
-              }
-            }
-          }
-          
-          merged.foodTemplates = mergedTemplates;
-        } else if (localData.foodTemplates) {
-          merged.foodTemplates = localData.foodTemplates;
-        }
-        
-        // รวมข้อมูล goals
-        if (localData.goals && serverData.goals) {
-          // ตรวจสอบว่าอันไหนอัพเดทล่าสุด
-          const localGoalsLastModified = localData.goals.lastModified ? new Date(localData.goals.lastModified) : new Date(0);
-          const serverGoalsLastModified = serverData.goals.lastModified ? new Date(serverData.goals.lastModified) : new Date(0);
-          
-          if (localGoalsLastModified > serverGoalsLastModified) {
-            merged.goals = localData.goals;
-          } else {
-            merged.goals = serverData.goals;
-          }
-        } else if (localData.goals) {
-          merged.goals = localData.goals;
-        }
-        
-        // รวมข้อมูล weightHistory
-        if (localData.weightHistory && serverData.weightHistory) {
-          const mergedWeightHistory = [...serverData.weightHistory];
-          
-          // ตรวจสอบว่ามีข้อมูลน้ำหนักใน local ที่ไม่มีใน server หรือไม่
-          for (const localWeight of localData.weightHistory) {
-            // ตรวจสอบว่าข้อมูลนี้มีอยู่ใน server หรือไม่
-            const existingWeightIndex = mergedWeightHistory.findIndex(w => w.date === localWeight.date);
-            
-            if (existingWeightIndex === -1) {
-              // ถ้าไม่มี ให้เพิ่มเข้าไป
-              mergedWeightHistory.push(localWeight);
-            } else {
-              // ถ้ามีแล้ว ให้ใช้อันที่ใหม่กว่า
-              const serverWeight = mergedWeightHistory[existingWeightIndex];
-              const localLastModified = localWeight.lastModified ? new Date(localWeight.lastModified) : new Date(0);
-              const serverLastModified = serverWeight.lastModified ? new Date(serverWeight.lastModified) : new Date(0);
-              
-              if (localLastModified > serverLastModified) {
-                mergedWeightHistory[existingWeightIndex] = localWeight;
-              }
-            }
-          }
-          
-          merged.weightHistory = mergedWeightHistory;
-        } else if (localData.weightHistory) {
-          merged.weightHistory = localData.weightHistory;
-        }
-        
-        // อัพเดทสถานะอื่นๆ
-        merged.isInitialized = localData.isInitialized;
-        merged.isLoading = localData.isLoading;
-        merged.error = localData.error;
-        merged.currentDate = localData.currentDate;
-        
-        return merged;
+          'data.clearSuccess', 
+          'data.clearSuccessDesc'
+        );
       },
       
       // Template management methods
@@ -1045,10 +498,6 @@ export const useNutritionStore = create<NutritionState>()(
             lastModified: new Date().toISOString() // เพิ่ม timestamp
           };
           
-          // อัพเดท timestamp เมื่อมีการเพิ่มมื้ออาหาร
-          const now = new Date().toISOString();
-          localStorage.setItem('last-local-update-time', now);
-          
           // Return updated state
           return {
             dailyLogs: {
@@ -1067,14 +516,6 @@ export const useNutritionStore = create<NutritionState>()(
             calories: Math.round(meal.foodItem.calories * meal.quantity)
           }
         );
-        
-        // ซิงค์ข้อมูลในพื้นหลัง
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync after adding meal failed:', error));
-          }
-        }, 500);
       },
       
       // ฟังก์ชั่นอื่นๆ ที่ไม่เกี่ยวกับการแก้ไขโครงสร้าง template ยังคงเหมือนเดิม...
@@ -1121,10 +562,6 @@ export const useNutritionStore = create<NutritionState>()(
                 lastModified: new Date().toISOString() // เพิ่ม timestamp
               };
               
-              // อัพเดท timestamp เมื่อมีการลบมื้ออาหาร
-              const now = new Date().toISOString();
-              localStorage.setItem('last-local-update-time', now);
-              
               break;
             }
           }
@@ -1143,14 +580,6 @@ export const useNutritionStore = create<NutritionState>()(
             }
           );
         }
-        
-        // ซิงค์ข้อมูลอัตโนมัติหลังจากลบ
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync after removing meal failed:', error));
-          }
-        }, 500);
       },
       
       updateMealEntry: async (entryId, updates) => {
@@ -1221,10 +650,6 @@ export const useNutritionStore = create<NutritionState>()(
         set((state) => {
           const updatedGoals = { ...state.goals, ...goals, lastModified: new Date().toISOString() };
           
-          // อัพเดท timestamp
-          const now = new Date().toISOString();
-          localStorage.setItem('last-local-update-time', now);
-          
           return { goals: updatedGoals };
         });
         
@@ -1233,14 +658,6 @@ export const useNutritionStore = create<NutritionState>()(
           'goals.updateSuccess',
           'goals.updateSuccessDesc'
         );
-        
-        // ซิงค์ข้อมูลในพื้นหลัง
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync failed:', error));
-          }
-        }, 500);
       },
       
       updateDailyMood: async (date, moodRating, notes) => {
@@ -1267,10 +684,6 @@ export const useNutritionStore = create<NutritionState>()(
             lastModified: new Date().toISOString() // เพิ่ม timestamp
           };
           
-          // อัพเดท timestamp สำหรับการซิงค์
-          const now = new Date().toISOString();
-          localStorage.setItem('last-local-update-time', now);
-          
           return {
             dailyLogs: {
               ...dailyLogs,
@@ -1284,14 +697,6 @@ export const useNutritionStore = create<NutritionState>()(
           'mood.updateSuccess',
           'mood.updateSuccessDesc'
         );
-        
-        // ซิงค์ข้อมูลหลังจากอัพเดทอารมณ์
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync after mood update failed:', error));
-          }
-        }, 500);
       },
       
       getMood: (date) => {
@@ -1341,10 +746,6 @@ export const useNutritionStore = create<NutritionState>()(
             lastModified: new Date().toISOString() // เพิ่ม timestamp
           };
           
-          // อัพเดท timestamp สำหรับการซิงค์
-          const now = new Date().toISOString();
-          localStorage.setItem('last-local-update-time', now);
-          
           return {
             dailyLogs: {
               ...dailyLogs,
@@ -1377,14 +778,6 @@ export const useNutritionStore = create<NutritionState>()(
             }
           );
         }
-        
-        // ซิงค์ข้อมูลอัตโนมัติหลังจากเพิ่มน้ำดื่ม
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync after water intake failed:', error));
-          }
-        }, 500);
       },
       
       resetWaterIntake: async (date) => {
@@ -1404,10 +797,6 @@ export const useNutritionStore = create<NutritionState>()(
             lastModified: new Date().toISOString() // เพิ่ม timestamp
           };
           
-          // อัพเดท timestamp สำหรับการซิงค์
-          const now = new Date().toISOString();
-          localStorage.setItem('last-local-update-time', now);
-          
           return {
             dailyLogs: {
               ...dailyLogs,
@@ -1421,14 +810,6 @@ export const useNutritionStore = create<NutritionState>()(
           'water.reset', 
           'water.resetDesc'
         );
-        
-        // ซิงค์ข้อมูลอัตโนมัติหลังจากรีเซ็ต
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync after water reset failed:', error));
-          }
-        }, 500);
       },
       
       getWaterIntake: (date) => {
@@ -1487,19 +868,7 @@ export const useNutritionStore = create<NutritionState>()(
           };
         }
         
-        // อัพเดท timestamp สำหรับการซิงค์
-        const now = new Date().toISOString();
-        localStorage.setItem('last-local-update-time', now);
-        
         set({ weightHistory: updatedWeightHistory, dailyLogs: updatedDailyLogs });
-        
-        // ซิงค์ข้อมูลอัตโนมัติหลังจากบันทึกน้ำหนัก
-        setTimeout(() => {
-          // ตรวจสอบว่าสามารถซิงค์ได้หรือไม่ก่อนที่จะทำการซิงค์
-          if (get().canSync()) {
-            get().syncData().catch(error => console.error('Background sync after weight entry failed:', error));
-          }
-        }, 500);
         
         // แสดง toast เมื่อบันทึกเรียบร้อย
         showToast(
@@ -1558,37 +927,6 @@ export const useNutritionStore = create<NutritionState>()(
       
       getWeightGoal: () => {
         return get().goals.weight;
-      },
-      
-      // Data management
-      clearTodayData: () => {
-        const { currentDate, dailyLogs } = get();
-        const today = dailyLogs[currentDate];
-        
-        // ถ้าไม่มีข้อมูลวันนี้ ไม่ต้องทำอะไร
-        if (!today) return;
-        
-        // คัดลอกข้อมูลเดิมแต่ล้างมื้ออาหารและคำนวณค่าโภชนาการใหม่
-        set((state) => ({
-          dailyLogs: {
-            ...state.dailyLogs,
-            [currentDate]: {
-              ...today,
-              meals: [], // ล้างมื้ออาหารทั้งหมด
-              totalCalories: 0, // รีเซ็ตค่าแคลอรี่
-              totalProtein: 0, // รีเซ็ตค่าโปรตีน
-              totalFat: 0, // รีเซ็ตค่าไขมัน
-              totalCarbs: 0, // รีเซ็ตค่าคาร์โบไฮเดรต
-              lastModified: new Date().toISOString() // อัปเดทเวลาแก้ไข
-            }
-          }
-        }));
-        
-        // แสดง toast แจ้งเตือน
-        showToast(
-          'data.clearSuccess', 
-          'data.clearSuccessDesc'
-        );
       }
     }),
     {
@@ -1600,7 +938,7 @@ export const useNutritionStore = create<NutritionState>()(
         dailyLogs: state.dailyLogs,
         currentDate: state.currentDate,
         isInitialized: state.isInitialized,
-        lastSyncTime: state.lastSyncTime, // บันทึก lastSyncTime
+        weightHistory: state.weightHistory
       })
     }
   )
