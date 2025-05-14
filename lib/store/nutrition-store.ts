@@ -282,6 +282,16 @@ export const useNutritionStore = create<NutritionState>()(
             };
           });
           
+          // โหลด currentDate จาก localStorage ถ้ามี
+          const savedCurrentDate = localStorage.getItem('nutrition-current-date');
+          if (savedCurrentDate) {
+            set({ currentDate: savedCurrentDate });
+          } else {
+            // ถ้าไม่มีค่าใน localStorage ให้ใช้วันที่ปัจจุบัน
+            const today = new Date().toISOString().split('T')[0];
+            set({ currentDate: today });
+          }
+          
           set({ isInitialized: true, isLoading: false });
         } catch (error) {
           console.error('Failed to initialize nutrition data', error);
@@ -644,6 +654,10 @@ export const useNutritionStore = create<NutritionState>()(
       
       setCurrentDate: (date) => {
         set({ currentDate: date });
+        // บันทึกลงใน localStorage เพื่อให้เก็บค่าไว้เมื่อรีเฟรชหน้า
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nutrition-current-date', date);
+        }
       },
       
       updateGoals: async (goals) => {

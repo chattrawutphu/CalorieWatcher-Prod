@@ -10,6 +10,48 @@
   --sal: env(safe-area-inset-left);
 }
 
+/* Smooth page transitions and anti-flickering styles */
+body {
+  overflow-x: hidden; /* ป้องกันการเลื่อนทางนอนที่ไม่จำเป็น */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ป้องกัน layout shift และการกระพริบ */
+.page-transition {
+  will-change: opacity;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transform: translateZ(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* ปรับปรุงการเปลี่ยนหน้าใน mobile */
+html, body {
+  touch-action: manipulation;
+  overscroll-behavior: none; /* ป้องกัน browser "bounce" effect */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* สั่ง browser ให้เตรียมตัวสำหรับการเปลี่ยน opacity */
+[data-animate="true"] {
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* เพิ่ม style สำหรับหน้าที่กำลังเปลี่ยน */
+.pageTransitioning {
+  pointer-events: none;
+}
+
+/* ปรับปรุงประสิทธิภาพของ animations */
+.page-content {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
 /* Glassmorphism Effect for Toasts */
 .glassmorphism-toast {
   position: relative;

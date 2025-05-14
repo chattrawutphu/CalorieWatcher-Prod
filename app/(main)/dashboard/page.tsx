@@ -339,12 +339,17 @@ export default function DashboardPage() {
   // เพิ่ม state เพื่อ toggle การแสดง slide controls ทั้งหมด
   const [showAllSlideControls, setShowAllSlideControls] = useState(false);
 
-  // Set current date to today when loading the Dashboard
+  // ใช้ค่า currentDate จาก store แทนการรีเซ็ตเป็นวันปัจจุบันทุกครั้งที่โหลด Dashboard
   useEffect(() => {
-    const todayDate = new Date().toISOString().split('T')[0];
-    setCurrentDate(todayDate);
-    setSelectedDate(todayDate);
-  }, [setCurrentDate]);
+    if (!currentDate) {
+      const todayDate = new Date().toISOString().split('T')[0];
+      setCurrentDate(todayDate);
+      setSelectedDate(todayDate);
+    } else {
+      // ตั้งค่า selectedDate ให้ตรงกับ currentDate จาก store เสมอ
+      setSelectedDate(currentDate);
+    }
+  }, [currentDate, setCurrentDate]);
 
   // Setup scroll listener for sticky date selector
   useEffect(() => {

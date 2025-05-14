@@ -70,8 +70,53 @@ export const MobileNav = memo(function MobileNav() {
   const [touchStartPos, setTouchStartPos] = useState({ x: 0, y: 0 });
   const [isTouching, setIsTouching] = useState(false);
 
+  // Prefetch all routes on mount - เพิ่มการ prefetch ทุกเส้นทางทันทีที่โหลด Nav
+  useEffect(() => {
+    // กำหนด route สำหรับ prefetch
+    const routesToPrefetch = ['/dashboard', '/home', '/stats', '/settings', '/meals', '/add'];
+    
+    // ทำ prefetch ทุกเส้นทางพร้อมกัน
+    Promise.all(routesToPrefetch.map(route => router.prefetch(route)));
+  }, [router]);
+
+  // Prefetch next possible routes based on current path - เพิ่ม logic prefetch แบบฉลาด
+  useEffect(() => {
+    const nextPossibleRoutes: string[] = [];
+    
+    // เพิ่ม logic ให้ฉลาดขึ้นในการ prefetch เฉพาะ route ที่มีโอกาสสูงที่จะเข้าถึงถัดไป
+    if (pathname.startsWith('/dashboard')) {
+      nextPossibleRoutes.push('/add', '/stats', '/settings');
+    } else if (pathname.startsWith('/home')) {
+      nextPossibleRoutes.push('/dashboard', '/settings');
+    } else if (pathname.startsWith('/stats')) {
+      nextPossibleRoutes.push('/dashboard', '/home');
+    } else if (pathname.startsWith('/settings')) {
+      nextPossibleRoutes.push('/dashboard', '/home');
+      nextPossibleRoutes.push('/settings/data', '/settings/appearance');
+    } else if (pathname.startsWith('/add')) {
+      nextPossibleRoutes.push('/dashboard', '/meals');
+    }
+    
+    // ใช้ requestIdleCallback เพื่อไม่ให้ block การเรนเดอร์
+    if (typeof window !== 'undefined' && window.requestIdleCallback) {
+      window.requestIdleCallback(() => {
+        nextPossibleRoutes.forEach(route => router.prefetch(route));
+      });
+    } else {
+      // Fallback for browsers that don't support requestIdleCallback
+      setTimeout(() => {
+        nextPossibleRoutes.forEach(route => router.prefetch(route));
+      }, 200);
+    }
+  }, [pathname, router]);
+
   // Handle touch events
   const handleTouchStart = useCallback((e: React.TouchEvent, href: string) => {
+    // เพิ่ม prefetch ทันทีที่แตะปุ่ม เพื่อให้การนำทางเร็วขึ้น
+    if (href !== '#' && href !== pathname) {
+      router.prefetch(href);
+    }
+    
     e.preventDefault();
     setTouchStartTime(Date.now());
     setTouchStartPos({
@@ -85,7 +130,7 @@ export const MobileNav = memo(function MobileNav() {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(10);
     }
-  }, []);
+  }, [pathname, router]);
 
   // Handle mouse click events
   const handleClick = useCallback((href: string) => {

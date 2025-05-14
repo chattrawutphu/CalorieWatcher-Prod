@@ -1,13 +1,40 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, memo } from "react";
+import React, { useEffect, useState, useRef, useCallback, memo, Suspense, useMemo } from "react";
 import { MobileNav } from "@/components/ui/mobile-nav";
-import { redirect, useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import PageTransition from "@/components/page-transition";
 import { useNutritionStore } from "@/lib/store/nutrition-store";
 import { useLanguage } from "@/components/providers/language-provider";
-import { format, isToday } from "date-fns";
-import { toast } from "@/components/ui/use-toast";
+import { LocalStorageManager } from "@/lib/utils/local-storage-manager";
+
+// ตัวแปรกลาง state เพื่อเก็บข้อมูลว่าได้โหลดข้อมูลเริ่มต้นแล้วหรือยัง
+// ใช้วิธีนี้แทนการเก็บใน localStorage เพื่อลดการเข้าถึง disk I/O
+const appInitializationState = {
+  isInitialized: false,
+  lastInitTime: 0,
+  pageVisitTimes: {} as Record<string, number>,
+  cachedRouteData: new Map<string, any>()
+};
+
+// Skeleton loader component
+const PageSkeleton = memo(() => (
+  <div className="animate-pulse space-y-4 py-4">
+    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-1/3"></div>
+    <div className="space-y-2">
+      <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+    </div>
+  </div>
+));
+
+// เพิ่มฟังก์ชันสำหรับล้าง cache เมื่อมีการเปลี่ยนแปลงข้อมูล
+const clearPageCache = (pageKey: string) => {
+  if (appInitializationState.cachedRouteData.has(pageKey)) {
+    appInitializationState.cachedRouteData.delete(pageKey);
+  }
+};
 
 // ใช้ memo เพื่อป้องกันการ re-render ที่ไม่จำเป็น
 export default memo(function MainLayout({
@@ -17,7 +44,10 @@ export default memo(function MainLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!appInitializationState.isInitialized);
+  
+  // เก็บข้อมูลเวลาการเข้าถึงล่าสุดของแต่ละหน้า
+  const pageLastVisitedRef = useRef<Record<string, number>>(appInitializationState.pageVisitTimes);
   
   const { locale } = useLanguage();
   
@@ -25,65 +55,104 @@ export default memo(function MainLayout({
     initializeData 
   } = useNutritionStore();
 
+  // ดึง page key จาก pathname
+  const pageKey = useMemo(() => pathname.split('/')[1] || 'home', [pathname]);
+
   // เมื่อเริ่มต้นแอพหรือเมื่อรีเฟรช ให้โหลดข้อมูลจาก localStorage
   useEffect(() => {
-      // ใช้ Promise.resolve() เพื่อให้เรียกใช้นอก callstack หลัก และไม่บล็อกการเรนเดอร์
+    const currentTime = Date.now();
+    
+    // โหลดข้อมูลเฉพาะเมื่อ:
+    // 1. ยังไม่เคยโหลดข้อมูลเลย หรือ
+    // 2. โหลดข้อมูลครั้งล่าสุดเกิน 5 นาที
+    const shouldInitialize = 
+      !appInitializationState.isInitialized || 
+      (currentTime - appInitializationState.lastInitTime > 5 * 60 * 1000);
+    
+    if (shouldInitialize) {
+      // แสดง loading state
+      setIsLoading(true);
+      
+      // ใช้ Promise.resolve แบบขนานกับ requestAnimationFrame เพื่อไม่หน่วงการแสดงผล UI
       Promise.resolve().then(async () => {
-        // โหลดข้อมูลแบบพื้นฐานก่อน
+        // โหลดข้อมูลเริ่มต้น
         await initializeData();
         
-        // ตรวจสอบว่าเป็นการโหลดหน้าใหม่หรือการรีเฟรช (ไม่ใช่การเปลี่ยนหน้าภายในแอพ)
-        const isNewPageLoad = !sessionStorage.getItem('app-initialized');
-        sessionStorage.setItem('app-initialized', 'true');
-    });
-    
-    // Set loading state to false after initialization
+        // ใช้ requestIdleCallback เพื่อไม่ block main thread
+        const runWhenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
+        
+        runWhenIdle(() => {
+          // อัปเดต global state
+          appInitializationState.isInitialized = true;
+          appInitializationState.lastInitTime = currentTime;
+          
+          // บันทึกเวลาเข้าถึงหน้าปัจจุบัน
+          pageLastVisitedRef.current[pageKey] = currentTime;
+          appInitializationState.pageVisitTimes[pageKey] = currentTime;
+          
+          // จบการโหลด
+          setIsLoading(false);
+        });
+      });
+    } else {
+      // อัปเดตเวลาเข้าถึงหน้าปัจจุบันโดยไม่ต้องโหลดใหม่
+      pageLastVisitedRef.current[pageKey] = currentTime;
+      appInitializationState.pageVisitTimes[pageKey] = currentTime;
       setIsLoading(false);
-  }, [initializeData]);
-
-  // Prefetch main routes on layout mount to improve navigation speed (ปรับปรุงประสิทธิภาพ)
-  const prefetchRoutes = useCallback(() => {
-    // หน้าหลักที่ควร prefetch ตลอดเวลา
-    const mainRoutes = ['/dashboard', '/history', '/meals', '/settings'];
-    
-    // ใช้ Promise.all เพื่อทำ prefetch พร้อมกันแบบขนาน
-    Promise.all(mainRoutes.map(route => router.prefetch(route)));
-    
-    // Prefetch เฉพาะหน้าที่น่าจะไปต่อเท่านั้น
-    if (pathname === '/dashboard') {
-      router.prefetch('/add');
-    } else if (pathname === '/history') {
-      router.prefetch('/dashboard');
-    } else if (pathname === '/meals') {
-      router.prefetch('/add');
     }
-  }, [router, pathname]);
-  
-  // ใช้ requestIdleCallback (หรือ polyfill) เพื่อ prefetch routes เมื่อ browser ว่าง
-  useEffect(() => {
-    // ใช้ requestIdleCallback ถ้ามี มิฉะนั้นให้ใช้ setTimeout
-    const requestIdleCallbackPolyfill = 
-      window.requestIdleCallback || 
-      ((cb) => setTimeout(cb, 1));
-      
-    // ทำ prefetch เมื่อ browser ว่าง
-    requestIdleCallbackPolyfill(() => {
-      prefetchRoutes();
-    });
-  }, [prefetchRoutes]);
+    
+    // Flush LocalStorageManager เมื่อเปลี่ยนหน้า
+    return () => {
+      if (LocalStorageManager) {
+        LocalStorageManager.flush(true);
+      }
+    };
+  }, [initializeData, pageKey]);
 
-  // แสดง UI เฉพาะเมื่อโหลดเสร็จแล้ว
-  if (isLoading) {
+  // Prefetch main routes ตั้งแต่แรก และ prefetch เพิ่มเติมตามหน้าปัจจุบัน
+  useEffect(() => {
+    // หน้าหลักที่ควร prefetch ด้วย priority สูง
+    const mainRoutes = ['/dashboard', '/home', '/stats', '/settings'];
+    
+    // หน้าเสริมตามบริบทของหน้าปัจจุบัน
+    const contextRoutes: Record<string, string[]> = {
+      'dashboard': ['/add', '/stats/day', '/settings/data'],
+      'home': ['/dashboard', '/settings', '/stats'],
+      'stats': ['/dashboard', '/stats/day', '/stats/month'],
+      'settings': ['/settings/data', '/settings/appearance', '/settings/admin'],
+      'add': ['/dashboard', '/home']
+    };
+    
+    // Prefetch หน้าหลักที่สำคัญที่สุดก่อน
+    mainRoutes.forEach(route => {
+      router.prefetch(route);
+    });
+    
+    // Prefetch หน้าตามบริบทเมื่อ browser ว่าง
+    const runWhenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 10));
+    
+    runWhenIdle(() => {
+      // ดึงรายการหน้าตามบริบทของหน้าปัจจุบัน
+      const relevantRoutes = contextRoutes[pageKey] || [];
+      
+      // Prefetch หน้าตามบริบท
+      relevantRoutes.forEach(route => {
+        router.prefetch(route);
+      });
+    });
+  }, [router, pageKey]);
+
+  // คำนวณว่าควรแสดง skeleton loader หรือไม่
+  const shouldShowSkeleton = isLoading || !appInitializationState.isInitialized;
+
+  // แสดง Skeleton loader เฉพาะเมื่อโหลดครั้งแรกเท่านั้น
+  if (shouldShowSkeleton) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-t-2 border-blue-500 rounded-full animate-spin"></div>
-          <p className="mt-4 text-sm text-gray-500">
-            {locale === 'en' ? 'Loading...' : 
-             locale === 'th' ? 'กำลังโหลด...' : 
-             locale === 'ja' ? '読み込み中...' : '加载中...'}
-          </p>
-        </div>
+      <div className="min-h-screen flex flex-col pb-16 md:pb-0 relative">
+        <main className="flex-1 container px-3 pt-safe relative z-10">
+          <PageSkeleton />
+        </main>
+        <MobileNav />
       </div>
     );
   }
@@ -91,13 +160,16 @@ export default memo(function MainLayout({
   return (
     <div className="min-h-screen flex flex-col pb-16 md:pb-0 relative">
       <main className="flex-1 container px-3 pt-safe relative z-10">
-
-      
-            <PageTransition>
-              {children}
-            </PageTransition>
-        </main>
-        <MobileNav />
-      </div>
+        <Suspense fallback={<PageSkeleton />}>
+          <PageTransition>
+            {children}
+          </PageTransition>
+        </Suspense>
+      </main>
+      <MobileNav />
+    </div>
   );
-}); 
+});
+
+// เอ็กซ์พอร์ต clearPageCache เพื่อให้ใช้งานได้จากภายนอก
+export { clearPageCache }; 
