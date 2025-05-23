@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import CalendarPopup from '@/components/ui/calendar-popup';
 import BottomSheet from '@/components/ui/bottom-sheet';
 import LayoutEditor from '@/components/ui/layout-editor';
@@ -10,6 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Save, Minus, Plus, AlertCircle, X, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/components/providers/language-provider';
 import { aiAssistantTranslations } from '@/lib/translations/ai-assistant';
+import { useNavigationCleanup, useCloseAllPopups } from "@/lib/hooks/use-navigation-cleanup";
 
 // กำหนด state types ของ popups ต่างๆ
 interface PopupsContextState {
@@ -60,6 +61,7 @@ let saveEditedMealCallback: (() => void) | undefined;
 // Provider Component
 export function PopupsProvider({ children }: { children: ReactNode }) {
   const { locale } = useLanguage();
+  const { closeAll } = useCloseAllPopups();
   const t = aiAssistantTranslations[locale];
   
   // Bottom Sheet States
@@ -84,39 +86,46 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
   // Overall modal state - true if any modal is open
   const isAnyModalOpen = isBottomSheetOpen || isCalendarOpen || isLayoutEditorOpen || isEditMealOpen;
   
-  // Effect to disable body scrolling when modal is open
+  // Effect to disable body scrolling when modal is open - ปรับปรุงให้ดีขึ้น
   useEffect(() => {
     if (isAnyModalOpen) {
-      // Disable scrolling and pull-to-refresh when modal is open
-      document.body.style.overflow = 'hidden';
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      const body = document.body;
+      const html = document.documentElement;
       
-      // Disable touch events on the main content to prevent pull-to-refresh
-      const mainContent = document.querySelector('main');
-      if (mainContent) {
-        mainContent.style.pointerEvents = 'none';
-      }
-    } else {
-      // Re-enable scrolling when all modals are closed
-      document.body.style.overflow = '';
+      // Prevent scrolling and pull-to-refresh when modal is open
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
       
-      // Re-enable touch events
-      const mainContent = document.querySelector('main');
-      if (mainContent) {
-        mainContent.style.pointerEvents = '';
-      }
+      // Prevent overscroll behavior on mobile
+      body.style.overscrollBehavior = 'none';
+      
+      // Store scroll position for restoration
+      body.dataset.scrollY = scrollY.toString();
+      
+      return () => {
+        // Restore scroll position
+        const savedScrollY = parseInt(body.dataset.scrollY || '0');
+        body.style.position = '';
+        body.style.top = '';
+        body.style.left = '';
+        body.style.right = '';
+        body.style.overflow = '';
+        html.style.overflow = '';
+        body.style.overscrollBehavior = '';
+        delete body.dataset.scrollY;
+        window.scrollTo(0, savedScrollY);
+      };
     }
-    
-    return () => {
-      document.body.style.overflow = '';
-      const mainContent = document.querySelector('main');
-      if (mainContent) {
-        mainContent.style.pointerEvents = '';
-      }
-    };
   }, [isAnyModalOpen]);
 
-  // เพิ่มฟังก์ชันสำหรับปิด popups ทั้งหมด
-  const closeAllPopups = () => {
+  // ปรับปรุงฟังก์ชันสำหรับปิด popups ทั้งหมด
+  const closeAllPopups = useCallback(() => {
     setIsBottomSheetOpen(false);
     setIsCalendarOpen(false);
     setIsLayoutEditorOpen(false);
@@ -124,10 +133,10 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
     calendarCallback = undefined;
     layoutEditorCallback = undefined;
     saveEditedMealCallback = undefined;
-  };
+  }, []);
   
-  // Bottom Sheet Methods
-  const openBottomSheet = (
+  // Bottom Sheet Methods - ปรับปรุงให้ดีขึ้น
+  const openBottomSheet = useCallback((
     content: ReactNode, 
     title: string = '', 
     height: "auto" | "full" | "half" | "fullscreen" = "auto"
@@ -135,15 +144,18 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
     // ปิด popups ทั้งหมดก่อนเปิด bottom sheet ใหม่
     closeAllPopups();
     
-    setBottomSheetContent(content);
-    setBottomSheetTitle(title);
-    setBottomSheetHeight(height);
-    setIsBottomSheetOpen(true);
-  };
+    // เพิ่ม slight delay เพื่อให้ animation สมูท
+    requestAnimationFrame(() => {
+      setBottomSheetContent(content);
+      setBottomSheetTitle(title);
+      setBottomSheetHeight(height);
+      setIsBottomSheetOpen(true);
+    });
+  }, [closeAllPopups]);
   
-  const closeBottomSheet = () => {
+  const closeBottomSheet = useCallback(() => {
     setIsBottomSheetOpen(false);
-  };
+  }, []);
   
   // Calendar Methods
   const openCalendar = (currentDate: string, onSelectCallback?: (date: string) => void) => {
@@ -225,7 +237,28 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
     closeEditMeal();
   };
   
-  // Context value
+  // Navigation cleanup สำหรับ popups ต่างๆ - ย้ายมาไว้หลังจากประกาศ functions
+  useNavigationCleanup(isBottomSheetOpen, closeBottomSheet, {
+    closeOnNavigation: true,
+    delay: 50
+  });
+  
+  useNavigationCleanup(isCalendarOpen, closeCalendar, {
+    closeOnNavigation: true,
+    delay: 50
+  });
+  
+  useNavigationCleanup(isLayoutEditorOpen, closeLayoutEditor, {
+    closeOnNavigation: true,
+    delay: 50
+  });
+  
+  useNavigationCleanup(isEditMealOpen, closeEditMeal, {
+    closeOnNavigation: true,
+    delay: 50
+  });
+  
+  // Context value - เพิ่ม closeAllPopups
   const contextValue: PopupsContextState = {
     // Bottom Sheet
     isBottomSheetOpen,
@@ -267,7 +300,7 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
       
       {/* PopupsContainer - แสดง popups ทั้งหมดในระดับสูงสุดของ DOM */}
       <div id="popups-container" className="relative z-[9999]">
-        {/* Bottom Sheet */}
+        {/* Bottom Sheet - ปรับปรุงให้ใช้ props ใหม่ */}
         <BottomSheet
           isOpen={isBottomSheetOpen}
           onClose={closeBottomSheet}
@@ -275,6 +308,10 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
           height={bottomSheetHeight}
           showDragHandle={true}
           showCloseButton={true}
+          closeOnNavigation={true}
+          preventBodyScroll={true}
+          swipeThreshold={120}
+          velocityThreshold={400}
         >
           {bottomSheetContent}
         </BottomSheet>
@@ -301,7 +338,7 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
           />
         )}
         
-        {/* Edit Meal */}
+        {/* Edit Meal - ปรับปรุงให้ใช้ props ใหม่ */}
         {isEditMealOpen && mealToEdit && (
           <BottomSheet
             isOpen={isEditMealOpen}
@@ -310,6 +347,8 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
             showDragHandle={true}
             showCloseButton={true}
             height="fullscreen"
+            closeOnNavigation={true}
+            preventBodyScroll={true}
           >
             <div className="max-w-md mx-auto">
               <div className="pb-safe">

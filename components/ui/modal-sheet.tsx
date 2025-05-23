@@ -2,6 +2,7 @@
 
 import React from "react";
 import BottomSheet from "./bottom-sheet";
+import { useNavigationCleanup } from "@/lib/hooks/use-navigation-cleanup";
 
 interface ModalSheetProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface ModalSheetProps {
   children: React.ReactNode;
   showCloseButton?: boolean;
   contentClass?: string;
+  closeOnNavigation?: boolean;
+  preventBodyScroll?: boolean;
 }
 
 /**
@@ -22,8 +25,16 @@ export const ModalSheet = ({
   title,
   children,
   showCloseButton = true,
-  contentClass = ""
+  contentClass = "",
+  closeOnNavigation = true,
+  preventBodyScroll = true
 }: ModalSheetProps) => {
+  // Navigation cleanup
+  useNavigationCleanup(isOpen, onClose, {
+    closeOnNavigation,
+    delay: 100
+  });
+
   return (
     <BottomSheet
       isOpen={isOpen}
@@ -32,6 +43,10 @@ export const ModalSheet = ({
       height="fullscreen"
       showCloseButton={showCloseButton}
       showDragHandle={false}
+      closeOnNavigation={closeOnNavigation}
+      preventBodyScroll={preventBodyScroll}
+      swipeThreshold={200} // Higher threshold for fullscreen
+      velocityThreshold={600}
     >
       <div className={`p-4 ${contentClass}`}>
         {children}

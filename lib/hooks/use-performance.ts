@@ -73,14 +73,26 @@ export function useDeviceCapabilities() {
     shouldReduceAnimations: false,
     hasIntersectionObserver: false,
     hasRequestIdleCallback: false,
+    isTouchDevice: false,
   });
   
   useEffect(() => {
+    // ตรวจสอบว่าเป็น touch device หรือไม่
+    const checkTouchDevice = () => {
+      return (
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        // @ts-ignore
+        navigator.msMaxTouchPoints > 0
+      );
+    };
+    
     setCapabilities({
       isLowEnd: isLowEndDevice(),
       shouldReduceAnimations: shouldReduceAnimations(),
       hasIntersectionObserver: 'IntersectionObserver' in window,
       hasRequestIdleCallback: 'requestIdleCallback' in window,
+      isTouchDevice: checkTouchDevice(),
     });
   }, []);
   

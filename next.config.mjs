@@ -44,9 +44,6 @@ const nextConfig = {
   // Compression
   compress: true,
   
-  // SWC minification
-  swcMinify: true,
-  
   // Security headers
   async headers() {
     return [
@@ -75,6 +72,15 @@ const nextConfig = {
     optimizeCss: true,
     serverMinification: true,
     serverSourceMaps: false,
+    // Turbopack optimization for Windows
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
 };
 

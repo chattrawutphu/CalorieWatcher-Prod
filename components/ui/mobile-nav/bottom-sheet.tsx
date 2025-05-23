@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, memo, useRef } from "react";
-import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, X, Apple, Pencil, Scan, Clock, Bot, Clipboard, ChevronRight, ArrowLeft } from "lucide-react";
@@ -17,17 +17,25 @@ import FoodEdit from "./food-edit";
 import BarcodeScanner from "./barcode-scanner";
 import RecentFoods from "./recent-foods";
 import CustomFood from "./custom-food";
+import { useNavigationCleanup } from "@/lib/hooks/use-navigation-cleanup";
+import { useDeviceCapabilities } from "@/lib/hooks/use-performance";
 
-// Animation variants
+// Enhanced animation variants with native-like feel
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: { duration: 0.2 }
+    transition: { 
+      duration: 0.25,
+      ease: [0.25, 0.46, 0.45, 0.94] // iOS native timing
+    }
   },
   exit: { 
     opacity: 0,
-    transition: { duration: 0.2 }
+    transition: { 
+      duration: 0.2,
+      ease: [0.25, 0.46, 0.45, 0.94]
+    }
   }
 };
 
@@ -36,27 +44,27 @@ const bottomSheetVariants = {
     y: "100%",
     transition: {
       type: "spring",
-      damping: 25,
-      stiffness: 300,
-      mass: 0.8
+      damping: 40,
+      stiffness: 400,
+      mass: 0.5
     }
   },
   visible: { 
     y: 0,
     transition: {
       type: "spring",
-      damping: 25,
-      stiffness: 300,
-      mass: 0.8
+      damping: 40,
+      stiffness: 400,
+      mass: 0.5
     }
   },
   exit: { 
     y: "100%",
     transition: {
       type: "spring",
-      damping: 25,
-      stiffness: 300,
-      mass: 0.8
+      damping: 40,
+      stiffness: 400,
+      mass: 0.5
     }
   }
 };
@@ -72,6 +80,7 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
   const { locale } = useLanguage();
   const t = aiAssistantTranslations[locale];
   const dragControls = useDragControls();
+  const { isLowEnd, isTouchDevice } = useDeviceCapabilities();
   
   // Access nutrition store
   const { 
@@ -92,29 +101,69 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
   const [selectedFood, setSelectedFood] = useState<FoodItem | FoodTemplate | null>(null);
   const [previousSection, setPreviousSection] = useState<string>("main");
   const [isVisible, setIsVisible] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   const bottomSheetRef = useRef<HTMLDivElement>(null);
 
-  // Handle visibility state
+  // Navigation cleanup hook
+  useNavigationCleanup(isOpen, onClose, {
+    closeOnNavigation: true,
+    delay: 100
+  });
+
+  // Handle visibility state with improved timing
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-    } else {
-      // ลบการตั้งค่า overflow กลับคืน
+      setDragOffset(0);
+      // Reset to main section when opening
+      setCurrentSection("main");
     }
-    
-    return () => {
-      // ลบการทำความสะอาดเมื่อ component ถูกทำลาย
-    };
   }, [isOpen]);
 
-  // Handle close with animation
+  // Enhanced body scroll prevention
+  useEffect(() => {
+    if (isVisible) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      const body = document.body;
+      const html = document.documentElement;
+      
+      // Prevent scrolling
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+      
+      // Prevent pull-to-refresh on mobile
+      body.style.overscrollBehavior = 'none';
+      
+      return () => {
+        // Restore scroll position
+        body.style.position = '';
+        body.style.top = '';
+        body.style.left = '';
+        body.style.right = '';
+        body.style.overflow = '';
+        html.style.overflow = '';
+        body.style.overscrollBehavior = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isVisible]);
+
+  // Enhanced close handler with animation
   const handleClose = useCallback(() => {
     setIsVisible(false);
+    setDragOffset(0);
+    
     const timer = setTimeout(() => {
       onClose();
-    }, 300);
+    }, isLowEnd ? 200 : 250);
+    
     return () => clearTimeout(timer);
-  }, [onClose]);
+  }, [onClose, isLowEnd]);
 
   // Handle back navigation
   const handleBackNavigation = useCallback(() => {
@@ -214,19 +263,51 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
     setCurrentSection("detail");
   }, [addFavoriteFood, updateFoodTemplate]);
 
-  // Add drag gesture handling with snap back
-  const handleDragEnd = useCallback((event: any, info: any) => {
-    const shouldClose = info.velocity.y > 300 || info.offset.y > 200;
+  // Native-like drag gesture handling
+  const handleDragEnd = useCallback((event: any, info: PanInfo) => {
+    const { velocity, offset } = info;
+    const shouldClose = velocity.y > 500 || offset.y > 150;
+    
     if (shouldClose) {
       handleClose();
+    } else {
+      // Snap back to original position
+      setDragOffset(0);
     }
   }, [handleClose]);
+
+  // Handle drag with visual feedback
+  const handleDrag = useCallback((event: any, info: PanInfo) => {
+    const { offset } = info;
+    // Only allow dragging down and only from main section
+    if (offset.y > 0 && currentSection === "main") {
+      setDragOffset(offset.y);
+    }
+  }, [currentSection]);
+
+  // Keyboard navigation support
+  useEffect(() => {
+    if (!isVisible) return;
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (currentSection !== "main") {
+          handleBackNavigation();
+        } else {
+          handleClose();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isVisible, handleClose, handleBackNavigation, currentSection]);
 
   return (
     <AnimatePresence mode="wait">
       {isVisible && (
         <>
-          {/* Backdrop with blur effect */}
+          {/* Enhanced backdrop with blur effect */}
           <motion.div
             key="backdrop"
             variants={overlayVariants}
@@ -234,40 +315,53 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
             animate="visible"
             exit="exit"
             onClick={handleClose}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm touch-none"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm touch-none"
+            style={{
+              WebkitBackdropFilter: 'blur(8px)',
+              backdropFilter: 'blur(8px)'
+            }}
           />
           
-          {/* Bottom Sheet Container */}
+          {/* Bottom Sheet Container with enhanced mobile UX */}
           <motion.div
             key="bottom-sheet"
             ref={bottomSheetRef}
-            className="fixed inset-0 max-w-md mx-auto z-50 flex flex-col bg-[hsl(var(--background))] rounded-t-2xl h-full border-t border-[hsl(var(--border))] shadow-xl"
+            className="fixed inset-0 max-w-md mx-auto z-50 flex flex-col bg-[hsl(var(--background))] rounded-t-3xl h-full border-t border-[hsl(var(--border))] shadow-2xl"
+            style={{
+              transform: `translateY(${dragOffset}px)`,
+              willChange: 'transform',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+            }}
             variants={bottomSheetVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            drag="y"
+            drag={isTouchDevice && currentSection === "main" ? "y" : false}
             dragControls={dragControls}
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.4}
+            dragElastic={{ top: 0, bottom: 0.2 }}
             dragMomentum={false}
+            onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             dragListener={false}
           >
-            {/* Header - Draggable Area */}
+            {/* Enhanced Header - Draggable Area */}
             <div
               className="bg-[hsl(var(--background))] border-b border-[hsl(var(--border))] pt-safe touch-none"
-              onPointerDown={(e) => dragControls.start(e)}
+              onPointerDown={isTouchDevice && currentSection === "main" ? (e) => dragControls.start(e) : undefined}
+              style={{
+                cursor: isTouchDevice && currentSection === "main" ? 'grab' : 'default'
+              }}
             >
-              <div className="flex justify-center py-2">
-                <div className="w-12 h-1.5 rounded-full bg-[hsl(var(--muted))]" />
+              <div className="flex justify-center py-3">
+                <div className="w-12 h-1.5 rounded-full bg-[hsl(var(--muted))] transition-colors" />
               </div>
               <div className="py-4 flex items-center px-4">
                 <div className="flex items-center gap-2">
                   {currentSection !== "main" && (
                     <motion.button 
                       onClick={handleBackNavigation} 
-                      className="p-2 rounded-full hover:bg-[hsl(var(--muted))] transition-colors touch-manipulation"
+                      className="p-2 rounded-full hover:bg-[hsl(var(--muted))] active:bg-[hsl(var(--muted-foreground/10))] transition-colors touch-manipulation"
                       whileTap={{ scale: 0.95 }}
                       disabled={!isVisible}
                     >
@@ -275,7 +369,7 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
                     </motion.button>
                   )}
                   
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold truncate">
                     {currentSection === "main" && "Add Food"}
                     {currentSection === "common" && t.mobileNav.commonFoods.title}
                     {currentSection === "custom" && t.mobileNav.customFood.title}
@@ -294,12 +388,13 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
               )}
             </div>
             
-            {/* Content */}
+            {/* Enhanced Content with improved scroll behavior */}
             <div 
               className="flex-1 overflow-y-auto overscroll-none touch-auto" 
               style={{ 
                 WebkitOverflowScrolling: 'touch',
-                overscrollBehavior: 'contain'
+                overscrollBehavior: 'contain',
+                transform: isLowEnd ? 'translateZ(0)' : undefined
               }}
             >
               <div className="px-4 pb-24">
@@ -327,7 +422,7 @@ const BottomSheet = memo(function BottomSheet({ isOpen, onClose, onMealAdded }: 
                     </div>
 
                     {/* Quick Actions with enhanced styling */}
-                    <div className="space-y-3">
+                    <div>
                       <h3 className="text-sm font-medium text-[hsl(var(--muted-foreground))] sm:mb-3 mb-2">
                         {t.mobileNav.common.quickActions || "Quick Actions"}
                       </h3>
