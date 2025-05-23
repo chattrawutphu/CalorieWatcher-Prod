@@ -165,13 +165,13 @@ html, body {
     --primary: 221.2, 83.2%, 53.3%;
     --primary-foreground: 210, 40%, 98%;
 
-    --secondary: 210, 40%, 96.1%;
+    --secondary: 210, 20%, 96.1%;
     --secondary-foreground: 222.2, 47.4%, 11.2%;
 
-    --muted: 210, 40%, 96.1%;
+    --muted: 210, 20%, 96.1%;
     --muted-foreground: 215.4, 16.3%, 46.9%;
 
-    --accent: 210, 40%, 96.1%;
+    --accent: 210, 20%, 96.1%;
     --accent-foreground: 222.2, 47.4%, 11.2%;
 
     --destructive: 0, 84.2%, 60.2%;
@@ -1595,59 +1595,55 @@ html, body {
 
 /* Light theme (Pink) specific classes and decorative elements */
 .light .bg-gradient-to-br {
-  background: linear-gradient(135deg, hsla(340, 100%, 97%, 0.8), hsla(330, 100%, 96%, 0.8), hsla(350, 100%, 96%, 0.8)) !important;
+  background: white !important;
 }
 
 /* Animated blobs for Light theme (Pink) */
 .light .animate-blob {
-  animation: blob 7s infinite, float-pink 4s ease-in-out infinite !important;
-  background: radial-gradient(circle at 50% 50%, hsla(335, 100%, 90%, 0.5), hsla(340, 100%, 85%, 0.3), transparent 70%) !important;
-  mix-blend-mode: soft-light;
-  border-radius: 50%;
+  background: radial-gradient(circle, rgba(220, 225, 230, 0.15), rgba(220, 225, 230, 0) 70%);
+  animation: blob 15s infinite ease;
 }
 
 .light .animate-blob:nth-child(2) {
-  animation-delay: 1s !important;
-  background: radial-gradient(circle at 50% 50%, hsla(355, 100%, 90%, 0.5), hsla(345, 100%, 85%, 0.3), transparent 70%) !important;
-  mix-blend-mode: soft-light;
+  background: radial-gradient(circle, rgba(220, 225, 230, 0.12), rgba(220, 225, 230, 0) 70%);
+  animation-delay: 2s;
 }
 
 .light .animate-blob:nth-child(3) {
-  animation-delay: 2s !important;
-  background: radial-gradient(circle at 50% 50%, hsla(310, 100%, 90%, 0.5), hsla(320, 100%, 85%, 0.3), transparent 70%) !important;
-  mix-blend-mode: soft-light;
+  background: radial-gradient(circle, rgba(220, 225, 230, 0.13), rgba(220, 225, 230, 0) 70%);
+  animation-delay: 4s;
 }
 
 /* Decorative elements for Light theme (Pink) */
 .light::before {
-  content: "";
+  content: '';
   position: fixed;
   top: -100px;
-  right: -50px;
+  right: -100px;
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle at center, hsla(335, 100%, 90%, 0.5), hsla(335, 100%, 90%, 0.2), transparent 70%);
+  background: radial-gradient(circle at center, rgba(210, 220, 230, 0.2), rgba(210, 220, 230, 0.1), transparent 70%);
   z-index: -1;
-  animation: float-pink 12s ease-in-out infinite;
+  animation: float-pink 17s ease-in-out infinite;
   pointer-events: none;
-  mix-blend-mode: soft-light;
+  mix-blend-mode: multiply;
 }
 
 .light::after {
-  content: "";
+  content: '';
   position: fixed;
   bottom: -100px;
-  left: -50px;
+  left: -100px;
   width: 250px;
   height: 250px;
   border-radius: 50%;
-  background: radial-gradient(circle at center, hsla(355, 100%, 90%, 0.5), hsla(355, 100%, 90%, 0.2), transparent 70%);
+  background: radial-gradient(circle at center, rgba(210, 220, 230, 0.2), rgba(210, 220, 230, 0.1), transparent 70%);
   z-index: -1;
   animation: float-pink 15s ease-in-out infinite;
   animation-delay: 1s;
   pointer-events: none;
-  mix-blend-mode: soft-light;
+  mix-blend-mode: multiply;
 }
 
 /* Emoji decorations for Light theme (Pink) */
@@ -1656,12 +1652,12 @@ html, body {
   top: 15%;
   right: 10%;
   font-size: 2.5rem;
-  opacity: 0.6;
+  opacity: 0.5;
   z-index: -1;
   animation: float-pink 6s ease-in-out infinite;
-  content: "🌸";
+  content: "❄️";
   pointer-events: none;
-  filter: drop-shadow(0 0 10px rgba(255, 150, 200, 0.7));
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
 }
 
 .light .light-emoji-2 {
@@ -1669,27 +1665,27 @@ html, body {
   bottom: 15%;
   left: 10%;
   font-size: 2.2rem;
-  opacity: 0.6;
+  opacity: 0.5;
   z-index: -1;
   animation: heart-beat 3s ease-in-out infinite;
-  content: "💖";
+  content: "🌊";
   pointer-events: none;
-  filter: drop-shadow(0 0 8px rgba(255, 100, 150, 0.7));
+  filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.5));
 }
 
-/* Add more decorative elements for Light theme (Pink) */
+/* Add more decorative elements for Light theme */
 .light .light-emoji-3 {
   position: fixed;
   top: 45%;
   left: 20%;
   font-size: 2rem;
-  opacity: 0.5;
+  opacity: 0.45;
   z-index: -1;
   animation: float-pink 5s ease-in-out infinite;
   animation-delay: 1.5s;
-  content: "🍰";
+  content: "💧";
   pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(255, 180, 220, 0.6));
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
 }
 
 .light .light-emoji-4 {
@@ -1697,81 +1693,37 @@ html, body {
   bottom: 40%;
   right: 15%;
   font-size: 1.8rem;
-  opacity: 0.5;
+  opacity: 0.45;
   z-index: -1;
   animation: float-pink 8s ease-in-out infinite;
   animation-delay: 2s;
-  content: "🍧";
-  pointer-events: none;
-  filter: drop-shadow(0 0 5px rgba(255, 200, 230, 0.6));
+  content: "🌟";
+  pointer-events: none; 
+  filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.5));
 }
 
-/* Add more cute elements */
-.light .light-sparkle-1 {
-  position: fixed;
-  top: 30%;
-  right: 30%;
-  font-size: 1rem;
-  opacity: 0.6;
-  z-index: -1;
-  animation: sparkle 3s ease-in-out infinite;
-  content: "✨";
-  pointer-events: none;
-}
-
-.light .light-sparkle-2 {
-  position: fixed;
-  bottom: 25%;
-  left: 35%;
-  font-size: 1.2rem;
-  opacity: 0.6;
-  z-index: -1;
-  animation: sparkle 2.5s ease-in-out infinite;
-  animation-delay: 0.5s;
-  content: "✨";
-  pointer-events: none;
-}
-
-.light .light-sparkle-3 {
-  position: fixed;
-  top: 60%;
-  left: 15%;
-  font-size: 0.8rem;
-  opacity: 0.6;
-  z-index: -1;
-  animation: sparkle 4s ease-in-out infinite;
-  animation-delay: 1s;
-  content: "✨";
-  pointer-events: none;
-}
-
+/* Light theme sparkles - remove these elements */
+.light .light-sparkle-1,
+.light .light-sparkle-2,
+.light .light-sparkle-3,
 .light .light-sparkle-4 {
-  position: fixed;
-  bottom: 55%;
-  right: 25%;
-  font-size: 1rem;
-  opacity: 0.6;
-  z-index: -1;
-  animation: sparkle 3.5s ease-in-out infinite;
-  animation-delay: 1.5s;
-  content: "✨";
-  pointer-events: none;
+  display: none;
 }
 
 /* Tooltip styles for Light (Pink) theme */
 .light .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: hsl(340, 100%, 99%) !important;
-  border-color: hsl(340, 75%, 90%) !important;
-  box-shadow: 0px 4px 15px rgba(255, 100, 150, 0.2) !important;
+  background-color: hsl(210, 40%, 98%) !important;
+  border-color: hsl(214, 32%, 89%) !important;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.08) !important;
 }
 
 .light .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
 .light .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
-  color: hsl(320, 50%, 35%) !important;
+  color: hsl(222, 84%, 4.9%) !important;
 }
 
 .light .recharts-tooltip-wrapper .font-medium {
-  color: hsl(335, 95%, 60%) !important;
+  color: hsl(221, 83%, 53%) !important;
 }
 
 /* Improved touch interaction styles */
@@ -2035,7 +1987,7 @@ html.transition *:after {
   top: 10vh;
   left: 15vw;
   font-size: 4rem;
-  opacity: 0.15;
+  opacity: 0.1;
   z-index: -1;
   animation: float-cloud 25s ease-in-out infinite;
   pointer-events: none;
@@ -2048,7 +2000,7 @@ html.transition *:after {
   top: 25vh;
   right: 10vw;
   font-size: 3.5rem;
-  opacity: 0.12;
+  opacity: 0.08;
   z-index: -1;
   animation: float-cloud 28s ease-in-out 2s infinite;
   pointer-events: none;
@@ -2060,10 +2012,10 @@ html.transition *:after {
   position: fixed;
   bottom: 30vh;
   left: 25vw;
-  font-size: 5rem;
-  opacity: 0.1;
+  font-size: 3rem;
+  opacity: 0.07;
   z-index: -1;
-  animation: float-cloud 30s ease-in-out 5s infinite;
+  animation: float-cloud 30s ease-in-out 4s infinite;
   pointer-events: none;
   filter: blur(1px);
 }
@@ -2073,29 +2025,23 @@ html.transition *:after {
   position: fixed;
   bottom: 15vh;
   right: 20vw;
-  font-size: 3rem;
-  opacity: 0.14;
+  font-size: 3.5rem;
+  opacity: 0.09;
   z-index: -1;
-  animation: float-cloud 22s ease-in-out 3s infinite;
+  animation: float-cloud 24s ease-in-out 6s infinite;
   pointer-events: none;
   filter: blur(1px);
 }
 
 @keyframes float-cloud {
   0% {
-    transform: translateX(0) translateY(0);
-  }
-  25% {
-    transform: translateX(20px) translateY(-5px);
+    transform: translate(0, 0);
   }
   50% {
-    transform: translateX(35px) translateY(10px);
-  }
-  75% {
-    transform: translateX(15px) translateY(5px);
+    transform: translate(10px, 10px);
   }
   100% {
-    transform: translateX(0) translateY(0);
+    transform: translate(0, 0);
   }
 }
 
@@ -2143,4 +2089,281 @@ html, body {
   border-radius: 0.5rem;
   padding: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Enhanced Light Theme Card Styling - more clean and simple */
+.light .card {
+  background: white;
+  border: 1px solid hsl(214, 32%, 91%);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.02),
+    0 4px 8px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Remove the colored accent line at the top */
+.light .card::after {
+  display: none;
+}
+
+/* Buttons in Light Theme */
+.light .button {
+  transition: all 0.3s ease;
+  background-position: center;
+}
+
+.light .button:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.light .button:active {
+  transform: translateY(0);
+}
+
+/* Inputs in Light Theme */
+.light input,
+.light textarea,
+.light select {
+  background: linear-gradient(to bottom, hsl(210, 30%, 99%), hsl(0, 0%, 100%));
+  border: 1px solid hsl(214, 32%, 89%);
+  transition: all 0.3s ease;
+}
+
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: hsl(221, 83%, 75%);
+  box-shadow: 0 0 0 2px hsla(221, 83%, 70%, 0.1);
+}
+
+/* Light Theme Specific Hover Effects */
+.light .hover-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.light .hover-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.03),
+    0 3px 6px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(59, 130, 246, 0.05);
+}
+
+/* Enhancing navigation in light theme */
+.light nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid hsla(214, 32%, 91%, 0.7);
+}
+
+/* Custom scrollbar styling for light theme */
+.light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: hsla(210, 30%, 96%, 0.7);
+  border-radius: 8px;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    hsla(221, 70%, 75%, 0.7),
+    hsla(240, 60%, 75%, 0.7)
+  );
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: all 0.3s ease;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    to bottom,
+    hsla(221, 70%, 65%, 0.8),
+    hsla(240, 60%, 65%, 0.8)
+  );
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+/* Subtle transition effects for light theme */
+.light .transition-element {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Add subtle divider styling */
+.light .divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsla(214, 32%, 91%, 0.8),
+    transparent
+  );
+  margin: 1rem 0;
+}
+
+/* Add subtle text gradient for headings */
+.light h1, 
+.light h2,
+.light .gradient-text {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: hsl(222, 84%, 4.9%);
+  display: inline-block;
+}
+
+/* Add subtle animations for loading states */
+@keyframes shimmer-light {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.light .shimmer-effect {
+  background: linear-gradient(
+    90deg,
+    hsla(210, 30%, 95%, 0.8) 25%,
+    hsla(210, 30%, 98%, 0.8) 50%,
+    hsla(210, 30%, 95%, 0.8) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-light 1.5s infinite;
+}
+
+/* Specific component styling for light theme */
+
+/* Dialog and Modal styling */
+.light .dialog,
+.light .modal,
+.light [role="dialog"] {
+  background: linear-gradient(to bottom right, hsl(0, 0%, 100%), hsl(210, 30%, 98%));
+  border: 1px solid hsla(214, 32%, 90%, 0.5);
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(8px);
+}
+
+/* Toast and notification styling */
+.light .toast,
+.light .notification {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid hsla(214, 32%, 90%, 0.5);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.03),
+    0 1px 3px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(8px);
+}
+
+/* Button primary styling - simpler design */
+.light .btn-primary,
+.light button[data-variant="primary"] {
+  background: hsl(221, 83%, 53%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: all 0.2s ease;
+}
+
+.light .btn-primary:hover,
+.light button[data-variant="primary"]:hover {
+  background: hsl(221, 83%, 48%);
+}
+
+/* Remove the gradient overlay effect */
+.light .btn-primary::before,
+.light button[data-variant="primary"]::before {
+  display: none;
+}
+
+/* Dropdown and select styling */
+.light .dropdown,
+.light .select,
+.light [role="listbox"] {
+  background: white;
+  border: 1px solid hsla(214, 32%, 90%, 0.8);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.03),
+    0 2px 6px rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  animation: fade-in-up 0.2s ease;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card header styling */
+.light .card-header {
+  border-bottom: 1px solid hsla(214, 32%, 93%, 0.8);
+  background: linear-gradient(to bottom, hsla(210, 30%, 98%, 0.6), hsla(210, 30%, 99%, 0));
+}
+
+/* Table styling */
+.light table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.light table th {
+  background: hsla(210, 30%, 96%, 0.5);
+  border-bottom: 1px solid hsla(214, 32%, 90%, 0.8);
+  font-weight: 500;
+  text-align: left;
+  color: hsl(215, 25%, 40%);
+  padding: 0.75rem 1rem;
+}
+
+.light table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsla(214, 32%, 93%, 0.5);
+}
+
+.light table tr:last-child td {
+  border-bottom: none;
+}
+
+.light table tr:hover td {
+  background: hsla(210, 30%, 97%, 0.5);
+}
+
+/* Remove emoji decorations from Light theme */
+.light .light-emoji-1,
+.light .light-emoji-2,
+.light .light-emoji-3,
+.light .light-emoji-4 {
+  display: none;
+}
+
+/* Remove cloud decorations from Light theme */
+.light .light-cloud-1:before,
+.light .light-cloud-2:before,
+.light .light-cloud-3:before,
+.light .light-cloud-4:before {
+  display: none;
 }

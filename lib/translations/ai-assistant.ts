@@ -160,7 +160,9 @@ export const aiAssistantTranslations = {
         saveCustomFood: "Add to My Custom Foods",
         saveCustomFoodDesc: "Save this food for easier access in the future",
         saveButton: "Save to My Custom Foods",
-        usingCustomFood: "Using your saved custom food data"
+        usingCustomFood: "Using your saved custom food data",
+        warningTitle: "Changes only affect this item",
+        warningDesc: "These edits won't affect previously saved entries of this food or templates"
       },
       barcodeScanner: {
         title: "Scan Barcode",
@@ -363,7 +365,9 @@ export const aiAssistantTranslations = {
         saveCustomFood: "เพิ่มในอาหารของฉัน",
         saveCustomFoodDesc: "บันทึกอาหารนี้เพื่อใช้งานได้ง่ายในอนาคต",
         saveButton: "บันทึกในอาหารของฉัน",
-        usingCustomFood: "กำลังใช้ข้อมูลอาหารที่คุณบันทึกไว้"
+        usingCustomFood: "กำลังใช้ข้อมูลอาหารที่คุณบันทึกไว้",
+        warningTitle: "การเปลี่ยนแปลงนี้จะมีผลกับรายการนี้เท่านั้น",
+        warningDesc: "การแก้ไขนี้ไม่มีผลกับอาหารชนิดนี้ที่เคยบันทึกไว้ หรือต้นแบบของอาหารในรายการส่วนตัว"
       },
       barcodeScanner: {
         title: "สแกนบาร์โค้ด",
@@ -566,7 +570,9 @@ export const aiAssistantTranslations = {
         saveCustomFood: "カスタム食品に追加",
         saveCustomFoodDesc: "この食品を保存して将来のアクセスを容易にする",
         saveButton: "カスタム食品に保存",
-        usingCustomFood: "保存したカスタム食品データを使用中"
+        usingCustomFood: "保存したカスタム食品データを使用中",
+        warningTitle: "この変更は現在の項目のみに影響します",
+        warningDesc: "この編集は、この食品の以前に保存されたエントリやテンプレートには影響しません"
       },
       barcodeScanner: {
         title: "バーコードをスキャン",
@@ -769,7 +775,9 @@ export const aiAssistantTranslations = {
         saveCustomFood: "添加到我的自定义食品",
         saveCustomFoodDesc: "保存此食品以方便将来访问",
         saveButton: "保存到我的自定义食品",
-        usingCustomFood: "正在使用您保存的自定义食品数据"
+        usingCustomFood: "正在使用您保存的自定义食品数据",
+        warningTitle: "更改仅影响此项目",
+        warningDesc: "这些编辑不会影响此食品的先前保存条目或模板"
       },
       barcodeScanner: {
         title: "扫描条形码",

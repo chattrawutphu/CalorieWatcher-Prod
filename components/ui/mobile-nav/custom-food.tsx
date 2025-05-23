@@ -139,7 +139,7 @@ const CustomFood = ({ onAdd, onBack }: CustomFoodProps) => {
   return (
     <div>
       {showAddForm ? (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium">{t.mobileNav.customFood.foodName}</label>
             <Input
@@ -190,9 +190,9 @@ const CustomFood = ({ onAdd, onBack }: CustomFoodProps) => {
             />
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t.mobileNav.customFood.protein}</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium">{t.mobileNav.customFood.protein}</label>
               <Input
                 type="number"
                 value={customFood.protein}
@@ -201,8 +201,8 @@ const CustomFood = ({ onAdd, onBack }: CustomFoodProps) => {
                 className="rounded-xl"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t.mobileNav.customFood.carbs}</label>
+            <div className="space-y-1">
+              <label className="text-xs font-medium">{t.mobileNav.customFood.carbs}</label>
               <Input
                 type="number"
                 value={customFood.carbs}
@@ -211,8 +211,8 @@ const CustomFood = ({ onAdd, onBack }: CustomFoodProps) => {
                 className="rounded-xl"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t.mobileNav.customFood.fat}</label>
+            <div className="space-y-1">
+              <label className="text-xs font-medium">{t.mobileNav.customFood.fat}</label>
               <Input
                 type="number"
                 value={customFood.fat}
@@ -230,14 +230,14 @@ const CustomFood = ({ onAdd, onBack }: CustomFoodProps) => {
                 type="number"
                 value={servingAmount}
                 onChange={(e) => setServingAmount(e.target.value)}
-                className="w-1/2"
+                className="w-1/3 rounded-xl"
                 placeholder="1"
               />
               <Select
                 value={servingUnit}
                 onValueChange={(value) => setServingUnit(value)}
               >
-                <SelectTrigger className="w-1/2">
+                <SelectTrigger className="w-2/3 rounded-xl">
                   <SelectValue placeholder="serving" />
                 </SelectTrigger>
                 <SelectContent>

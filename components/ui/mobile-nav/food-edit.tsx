@@ -164,7 +164,7 @@ const FoodEdit = ({ food, onBack, onSave }: FoodEditProps) => {
           <Input 
             value={editableFood.name}
             onChange={(e) => setEditableFood({...editableFood, name: e.target.value})}
-            className="w-full"
+            className="w-full rounded-xl"
           />
         </div>
 
@@ -205,7 +205,7 @@ const FoodEdit = ({ food, onBack, onSave }: FoodEditProps) => {
               ...editableFood, 
               calories: parseFloat(e.target.value) || 0
             })}
-            className="w-full"
+            className="w-full rounded-xl"
           />
         </div>
         
@@ -218,13 +218,13 @@ const FoodEdit = ({ food, onBack, onSave }: FoodEditProps) => {
               step="0.1"
               value={servingAmount}
               onChange={(e) => setServingAmount(e.target.value)}
-              className="w-1/3"
+              className="w-1/3 rounded-xl"
             />
             <Select
               value={servingUnit}
               onValueChange={setServingUnit}
             >
-              <SelectTrigger className="w-2/3">
+              <SelectTrigger className="w-2/3 rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -248,7 +248,7 @@ const FoodEdit = ({ food, onBack, onSave }: FoodEditProps) => {
                 ...editableFood, 
                 protein: parseFloat(e.target.value) || 0
               })}
-              className="w-full"
+              className="w-full rounded-xl"
             />
           </div>
           <div className="space-y-1">
@@ -260,7 +260,7 @@ const FoodEdit = ({ food, onBack, onSave }: FoodEditProps) => {
                 ...editableFood, 
                 carbs: parseFloat(e.target.value) || 0
               })}
-              className="w-full"
+              className="w-full rounded-xl"
             />
           </div>
           <div className="space-y-1">
@@ -272,7 +272,7 @@ const FoodEdit = ({ food, onBack, onSave }: FoodEditProps) => {
                 ...editableFood, 
                 fat: parseFloat(e.target.value) || 0
               })}
-              className="w-full"
+              className="w-full rounded-xl"
             />
           </div>
         </div>

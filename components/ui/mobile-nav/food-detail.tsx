@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Check, Pencil, BookmarkPlus, Bookmark, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Pencil, BookmarkPlus, Bookmark, Plus, Trash2, Minus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FoodItem, FoodTemplate, MealFoodItem, isTemplate, useNutritionStore } from "@/lib/store/nutrition-store";
@@ -214,6 +214,29 @@ const FoodDetail = ({ food, onBack, onAddFood, onEdit }: FoodDetailProps) => {
     return formatNumber(displayFood.calories * quantity);
   };
 
+  // Get category emoji
+  const getCategoryEmoji = (category: string): JSX.Element => {
+    const lowerCategory = (category || '').toLowerCase();
+    
+    if (lowerCategory.includes('protein') || lowerCategory.includes('meat')) {
+      return <span>🥩</span>;
+    } else if (lowerCategory.includes('dairy') || lowerCategory.includes('milk') || lowerCategory.includes('cheese')) {
+      return <span>🧀</span>;
+    } else if (lowerCategory.includes('fruit')) {
+      return <span>🍎</span>;
+    } else if (lowerCategory.includes('vegetable') || lowerCategory.includes('veg')) {
+      return <span>🥦</span>;
+    } else if (lowerCategory.includes('grain') || lowerCategory.includes('bread')) {
+      return <span>🍞</span>;
+    } else if (lowerCategory.includes('beverage') || lowerCategory.includes('drink')) {
+      return <span>🥤</span>;
+    } else if (lowerCategory.includes('snack')) {
+      return <span>🍿</span>;
+    } else {
+      return <span>🍽️</span>;
+    }
+  };
+
   // เมื่อกดปุ่มเพิ่มอาหาร
   const handleAddFood = () => {
     // สร้าง serving size ใหม่โดยรวมปริมาณและหน่วย
@@ -268,207 +291,104 @@ const FoodDetail = ({ food, onBack, onAddFood, onEdit }: FoodDetailProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-2">
-        <Button 
-          variant="ghost" 
-          className="flex items-center gap-2 p-0 h-auto"
-          onClick={onBack}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>{t.mobileNav.foodDetail.back}</span>
-        </Button>
-
-        <div className="flex gap-2">
-          {/* Show Delete button next to Edit button if food exists in custom foods */}
-          {existsInCustomFoods && matchingCustomFood && (
+    <div className="max-w-md mx-auto">
+      <div className="pb-safe">
+        <div className="space-y-6">
+          {/* Food Title and Preview */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white">
+              {getCategoryEmoji(displayFood.category)}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <h2 className="text-lg font-semibold truncate">{displayFood.name}</h2>
+              <p className="text-[hsl(var(--muted-foreground))] text-xs truncate">
+                {quantity} × {typeof displayFood.servingSize === 'string' ? displayFood.servingSize : 'serving'}
+              </p>
+            </div>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={handleDeleteFood}
-              className="flex items-center gap-1"
+              size="icon"
+              onClick={onBack}
+              className="h-9 w-9 rounded-full"
             >
-              <Trash2 className="h-4 w-4" />
-              <span>Delete</span>
+              <X className="h-4 w-4" />
             </Button>
-          )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleEditClick}
-            className="flex items-center gap-1"
-          >
-            {isEditing ? (
-              <>
-                <Check className="h-4 w-4" />
-                <span>Save</span>
-              </>
-            ) : (
-              <>
-                <Pencil className="h-4 w-4" />
-                <span>Edit</span>
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-      
-      {/* Custom Food Saving Option - Only show if not already saved and not USDA food */}
-      {!existsInCustomFoods && !(food as any).usdaId && !isEditing && (
-        <div className="flex items-start space-x-2 p-3 rounded-lg bg-[hsl(var(--muted))]/50">
-          <Checkbox 
-            id="save-custom" 
-            checked={saveAsCustomFood}
-            onCheckedChange={(checked) => setSaveAsCustomFood(checked === true)}
-          />
-          <div className="grid gap-1.5 leading-none">
-            <label
-              htmlFor="save-custom"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              {t.mobileNav.foodDetail.saveCustomFood || "Add to My Custom Foods"}
-            </label>
-            <p className="text-xs text-muted-foreground">
-              {t.mobileNav.foodDetail.saveCustomFoodDesc || "Save this food for easier access in the future"}
-            </p>
-          </div>
-        </div>
-      )}
-      
-      {/* Show note when using a custom food version */}
-      {existsInCustomFoods && !isEditing && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-[hsl(var(--accent))]/10 text-sm">
-          <Bookmark className="h-4 w-4 text-[hsl(var(--primary))]" />
-          <span>{t.mobileNav.foodDetail.usingCustomFood || "Using your saved custom food data"}</span>
-        </div>
-      )}
-      
-      {isEditing ? (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Food Name</label>
-            <Input 
-              value={editableFood.name}
-              onChange={(e) => setEditableFood({...editableFood, name: e.target.value})}
-              className="w-full"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Calories (kcal)</label>
-            <Input 
-              type="number"
-              value={editableFood.calories}
-              onChange={(e) => setEditableFood({
-                ...editableFood, 
-                calories: parseFloat(e.target.value) || 0
-              })}
-              className="w-full"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Serving Size</label>
-            <Input 
-              value={editableFood.servingSize}
-              onChange={(e) => setEditableFood({...editableFood, servingSize: e.target.value})}
-              className="w-full"
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">{t.result.protein} (g)</label>
-              <Input 
-                type="number"
-                value={editableFood.protein}
-                onChange={(e) => setEditableFood({
-                  ...editableFood, 
-                  protein: parseFloat(e.target.value) || 0
-                })}
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">{t.result.carbs} (g)</label>
-              <Input 
-                type="number"
-                value={editableFood.carbs}
-                onChange={(e) => setEditableFood({
-                  ...editableFood, 
-                  carbs: parseFloat(e.target.value) || 0
-                })}
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">{t.result.fat} (g)</label>
-              <Input 
-                type="number"
-                value={editableFood.fat}
-                onChange={(e) => setEditableFood({
-                  ...editableFood, 
-                  fat: parseFloat(e.target.value) || 0
-                })}
-                className="w-full"
-              />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div>
-            <h2 className="text-xl font-semibold">{displayFood.name}</h2>
-            <p className="text-[hsl(var(--muted-foreground))]">
-              {displayFood.servingSize} • {displayFood.calories} kcal
-            </p>
           </div>
           
-          <div className="grid grid-cols-3 gap-4 pb-2">
-            <div className="p-3 rounded-xl bg-[hsl(var(--accent))/0.1]">
-              <div className="text-xs text-[hsl(var(--primary))]">{t.result.protein}</div>
-              <div className="text-lg font-semibold">{displayFood.protein}g</div>
+          {/* Nutrition Summary */}
+          <div className="grid grid-cols-4 gap-2">
+            <div className="p-2 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] flex flex-col items-center justify-center">
+              <span className="text-md font-semibold">{Math.round(calculateCalories())}</span>
+              <span className="text-xs">kcal</span>
             </div>
-            <div className="p-3 rounded-xl bg-[hsl(var(--accent))/0.1]">
-              <div className="text-xs text-[hsl(var(--primary))]">{t.result.carbs}</div>
-              <div className="text-lg font-semibold">{displayFood.carbs}g</div>
+            <div className="p-2 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] flex flex-col items-center justify-center">
+              <span className="text-md font-semibold">{Math.round(displayFood.protein * quantity)}</span>
+              <span className="text-xs">{t.result.protein}</span>
             </div>
-            <div className="p-3 rounded-xl bg-[hsl(var(--accent))/0.1]">
-              <div className="text-xs text-[hsl(var(--primary))]">{t.result.fat}</div>
-              <div className="text-lg font-semibold">{displayFood.fat}g</div>
+            <div className="p-2 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] flex flex-col items-center justify-center">
+              <span className="text-md font-semibold">{Math.round(displayFood.carbs * quantity)}</span>
+              <span className="text-xs">{t.result.carbs}</span>
+            </div>
+            <div className="p-2 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] flex flex-col items-center justify-center">
+              <span className="text-md font-semibold">{Math.round(displayFood.fat * quantity)}</span>
+              <span className="text-xs">{t.result.fat}</span>
             </div>
           </div>
-        </>
-      )}
-      
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">{t.mobileNav.foodDetail.mealType}</label>
-          <select 
-            value={mealType}
-            onChange={(e) => setMealType(e.target.value)}
-            className="w-full rounded-xl border border-[hsl(var(--border))] p-3 bg-transparent"
-          >
-            <option value="breakfast">{t.mobileNav.foodDetail.mealTypes.breakfast}</option>
-            <option value="lunch">{t.mobileNav.foodDetail.mealTypes.lunch}</option>
-            <option value="dinner">{t.mobileNav.foodDetail.mealTypes.dinner}</option>
-            <option value="snack">{t.mobileNav.foodDetail.mealTypes.snack}</option>
-          </select>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-medium">{t.mobileNav.foodDetail.quantity}</label>
-          <div className="flex gap-2">
-            <div className="flex-1 flex items-center">
+          
+          {/* Custom Food Saving Option - Only show if not already saved and not USDA food */}
+          {!existsInCustomFoods && !(food as any).usdaId && !isEditing && (
+            <div className="flex items-start space-x-2 p-3 rounded-lg bg-[hsl(var(--accent))]/10">
+              <Checkbox 
+                id="save-custom" 
+                checked={saveAsCustomFood}
+                onCheckedChange={(checked) => setSaveAsCustomFood(checked === true)}
+                className="mt-1"
+              />
+              <div className="grid gap-1 leading-none">
+                <label
+                  htmlFor="save-custom"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {t.mobileNav.foodDetail.saveCustomFood || "Add to My Custom Foods"}
+                </label>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  {t.mobileNav.foodDetail.saveCustomFoodDesc || "Save this food for easier access in the future"}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Show note when using a custom food version */}
+          {existsInCustomFoods && !isEditing && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-[hsl(var(--accent))]/10 text-sm">
+              <Bookmark className="h-4 w-4 text-[hsl(var(--primary))]" />
+              <span>{t.mobileNav.foodDetail.usingCustomFood || "Using your saved custom food data"}</span>
+              {/* Add delete option */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDeleteFood}
+                className="ml-auto h-7 px-2 text-xs"
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                Delete
+              </Button>
+            </div>
+          )}
+          
+          {/* Quantity Selector */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{t.mobileNav.foodDetail.quantity}</label>
+            <div className="flex items-center">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-10 w-10 rounded-l-xl border-r-0"
+                className="h-12 w-12 rounded-l-lg border-r-0 flex-shrink-0"
                 onClick={() => quantity > 0.25 && setQuantity(formatNumber(quantity - 0.25))}
               >
-                -
+                <Minus className="h-4 w-4" />
               </Button>
+
               <Input
                 type="number"
                 value={quantity}
@@ -480,60 +400,213 @@ const FoodDetail = ({ food, onBack, onAddFood, onEdit }: FoodDetailProps) => {
                 }}
                 step="0.25"
                 min="0.25"
-                className="h-10 rounded-none text-center border-x-0"
+                className="h-12 rounded-none text-center border-x-0 touch-manipulation"
               />
+
               <Button
                 variant="outline"
                 size="icon"
-                className="h-10 w-10 rounded-r-xl border-l-0"
+                className="h-12 w-12 rounded-r-lg border-l-0 flex-shrink-0"
                 onClick={() => setQuantity(formatNumber(quantity + 0.25))}
               >
-                +
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+          
+          {isEditing ? (
+            <div className="border border-[hsl(var(--border))] rounded-lg p-3 space-y-4 bg-[hsl(var(--card))]">
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Food Name</label>
+                <Input 
+                  value={editableFood.name}
+                  onChange={(e) => setEditableFood({...editableFood, name: e.target.value})}
+                  className="w-full rounded-lg h-10 touch-manipulation"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Serving Size</label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={editableFood.servingSize.split(' ')[0] || '1'}
+                    onChange={(e) => {
+                      const unit = editableFood.servingSize.split(' ').slice(1).join(' ') || 'serving';
+                      setEditableFood({
+                        ...editableFood, 
+                        servingSize: `${e.target.value} ${unit}`
+                      });
+                    }}
+                    className="w-1/3 rounded-lg h-10 touch-manipulation"
+                  />
+                  <Select
+                    value={editableFood.servingSize.split(' ').slice(1).join(' ') || 'serving'}
+                    onValueChange={(value) => {
+                      const amount = editableFood.servingSize.split(' ')[0] || '1';
+                      setEditableFood({
+                        ...editableFood, 
+                        servingSize: `${amount} ${value}`
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="w-2/3 rounded-lg h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {commonUnits.map((unit) => (
+                        <SelectItem key={unit.value} value={unit.value}>
+                          {unit.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Calories (kcal)</label>
+                <Input 
+                  type="number"
+                  value={editableFood.calories}
+                  onChange={(e) => setEditableFood({
+                    ...editableFood, 
+                    calories: parseFloat(e.target.value) || 0
+                  })}
+                  className="w-full rounded-lg h-10 touch-manipulation"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Macronutrients (g)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">{t.result.protein}</label>
+                    <Input 
+                      type="number"
+                      value={editableFood.protein}
+                      onChange={(e) => setEditableFood({
+                        ...editableFood, 
+                        protein: parseFloat(e.target.value) || 0
+                      })}
+                      className="w-full rounded-lg h-10 touch-manipulation"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">{t.result.carbs}</label>
+                    <Input 
+                      type="number"
+                      value={editableFood.carbs}
+                      onChange={(e) => setEditableFood({
+                        ...editableFood, 
+                        carbs: parseFloat(e.target.value) || 0
+                      })}
+                      className="w-full rounded-lg h-10 touch-manipulation"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">{t.result.fat}</label>
+                    <Input 
+                      type="number"
+                      value={editableFood.fat}
+                      onChange={(e) => setEditableFood({
+                        ...editableFood, 
+                        fat: parseFloat(e.target.value) || 0
+                      })}
+                      className="w-full rounded-lg h-10 touch-manipulation"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="border border-[hsl(var(--border))] rounded-lg p-3 space-y-4 bg-[hsl(var(--card))]">
+              <div className="space-y-1">
+                <label className="text-sm font-medium">{t.mobileNav.foodDetail.mealType}</label>
+                <Select
+                  value={mealType}
+                  onValueChange={setMealType}
+                >
+                  <SelectTrigger className="w-full rounded-lg h-10">
+                    <SelectValue placeholder="Select meal type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="breakfast">{t.mobileNav.foodDetail.mealTypes.breakfast}</SelectItem>
+                    <SelectItem value="lunch">{t.mobileNav.foodDetail.mealTypes.lunch}</SelectItem>
+                    <SelectItem value="dinner">{t.mobileNav.foodDetail.mealTypes.dinner}</SelectItem>
+                    <SelectItem value="snack">{t.mobileNav.foodDetail.mealTypes.snack}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Serving Unit</label>
+                <Select
+                  value={quantityUnit}
+                  onValueChange={setQuantityUnit}
+                >
+                  <SelectTrigger className="w-full rounded-lg h-10">
+                    <SelectValue placeholder="Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {commonUnits.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEditClick}
+                className="w-full"
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Food Details
+              </Button>
+            </div>
+          )}
+          
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            {/* Add button for saving as custom food */}
+            {saveAsCustomFood && !existsInCustomFoods && (
+              <Button 
+                className="w-full"
+                variant="outline"
+                onClick={handleSaveAsCustomFood}
+              >
+                <BookmarkPlus className="h-4 w-4 mr-2" />
+                {t.mobileNav.foodDetail.saveButton || "Save to My Custom Foods"}
+              </Button>
+            )}
             
-            <Select
-              value={quantityUnit}
-              onValueChange={setQuantityUnit}
-            >
-              <SelectTrigger className="w-32 rounded-xl">
-                <SelectValue placeholder="Unit" />
-              </SelectTrigger>
-              <SelectContent>
-                {commonUnits.map((unit) => (
-                  <SelectItem key={unit.value} value={unit.value}>
-                    {unit.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Regular add food button or save edits button */}
+            {isEditing ? (
+              <Button
+                className="w-full"
+                onClick={handleEditClick}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            ) : (
+              <Button
+                className="w-full"
+                onClick={handleAddFood}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t.mobileNav.foodDetail.addToMeal}
+              </Button>
+            )}
           </div>
         </div>
-        
-        <div className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
-          {t.mobileNav.foodDetail.totalCalories}: {calculateCalories()} kcal
-        </div>
       </div>
-      
-      {/* Add button for saving as custom food */}
-      {saveAsCustomFood && !existsInCustomFoods && (
-        <Button 
-          className="w-full"
-          onClick={handleSaveAsCustomFood}
-        >
-          <BookmarkPlus className="h-4 w-4 mr-2" />
-          {t.mobileNav.foodDetail.saveButton || "Save to My Custom Foods"}
-        </Button>
-      )}
-      
-      {/* Regular add food button */}
-      <Button
-        className="w-full"
-        onClick={handleAddFood}
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        {t.mobileNav.foodDetail.addToMeal}
-      </Button>
     </div>
   );
 };

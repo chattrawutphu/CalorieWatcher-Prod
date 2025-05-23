@@ -4,6 +4,12 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import CalendarPopup from '@/components/ui/calendar-popup';
 import BottomSheet from '@/components/ui/bottom-sheet';
 import LayoutEditor from '@/components/ui/layout-editor';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Save, Minus, Plus, AlertCircle, X, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/components/providers/language-provider';
+import { aiAssistantTranslations } from '@/lib/translations/ai-assistant';
 
 // กำหนด state types ของ popups ต่างๆ
 interface PopupsContextState {
@@ -53,6 +59,9 @@ let saveEditedMealCallback: (() => void) | undefined;
 
 // Provider Component
 export function PopupsProvider({ children }: { children: ReactNode }) {
+  const { locale } = useLanguage();
+  const t = aiAssistantTranslations[locale];
+  
   // Bottom Sheet States
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [bottomSheetTitle, setBottomSheetTitle] = useState('');
@@ -265,7 +274,7 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
           title={bottomSheetTitle}
           height={bottomSheetHeight}
           showDragHandle={true}
-          showCloseButton={false}
+          showCloseButton={true}
         >
           {bottomSheetContent}
         </BottomSheet>
@@ -299,14 +308,88 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
             onClose={closeEditMeal}
             title="Edit Meal"
             showDragHandle={true}
-            showCloseButton={false}
+            showCloseButton={true}
             height="fullscreen"
           >
             <div className="max-w-md mx-auto">
-              <div className="space-y-4">
-                <div>
+              <div className="pb-safe">
+                <div className="space-y-6">
+                  {/* Food Title and Preview */}
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 flex items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white">
+                      {getCategoryEmoji(mealToEdit?.foodItem.category)}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <h2 className="text-lg font-semibold truncate">{mealToEdit?.foodItem.name}</h2>
+                      <p className="text-[hsl(var(--muted-foreground))] text-xs truncate">
+                        {editedQuantity} × {typeof mealToEdit?.foodItem.servingSize === 'string' ? mealToEdit?.foodItem.servingSize : 'serving'}
+                      </p>
+                    </div>
+                  </div>
+                
+                  {/* Nutrition Summary */}
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="p-2 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] flex flex-col items-center justify-center">
+                      <span className="text-md font-semibold">{Math.round(mealToEdit?.foodItem.calories * editedQuantity)}</span>
+                      <span className="text-xs">kcal</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] flex flex-col items-center justify-center">
+                      <span className="text-md font-semibold">{Math.round(mealToEdit?.foodItem.protein * editedQuantity)}</span>
+                      <span className="text-xs">{t?.result?.protein || "Protein"}</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] flex flex-col items-center justify-center">
+                      <span className="text-md font-semibold">{Math.round(mealToEdit?.foodItem.carbs * editedQuantity)}</span>
+                      <span className="text-xs">{t?.result?.carbs || "Carbs"}</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] flex flex-col items-center justify-center">
+                      <span className="text-md font-semibold">{Math.round(mealToEdit?.foodItem.fat * editedQuantity)}</span>
+                      <span className="text-xs">{t?.result?.fat || "Fat"}</span>
+                    </div>
+                  </div>
+                
+                  {/* Quantity Selector */}
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">{t?.mobileNav?.foodDetail?.quantity || "Quantity"}</label>
+                    <div className="flex items-center">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 rounded-l-lg border-r-0 flex-shrink-0"
+                        onClick={() => setEditedQuantity(prev => Math.max(0.25, prev - 0.25))}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+
+                      <Input
+                        type="number"
+                        value={editedQuantity}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value);
+                          if (!isNaN(value) && value > 0) {
+                            setEditedQuantity(value);
+                          }
+                        }}
+                        step="0.25"
+                        min="0.25"
+                        className="h-12 rounded-none text-center border-x-0 touch-manipulation"
+                      />
+
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 rounded-r-lg border-l-0 flex-shrink-0"
+                        onClick={() => setEditedQuantity(prev => prev + 0.25)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Form Section with Outline */}
+                  <div className="border border-[hsl(var(--border))] rounded-lg p-3 space-y-4 bg-[hsl(var(--card))]">
+                    <div className="space-y-1">
                   <label className="text-sm font-medium">Food Name</label>
-                  <input
+                      <Input
                     type="text"
                     value={mealToEdit?.foodItem.name}
                     onChange={(e) => {
@@ -320,57 +403,79 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
                         });
                       }
                     }}
-                    className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Quantity</label>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      className="h-8 w-8 rounded-full flex items-center justify-center border border-[hsl(var(--border))]"
-                      onClick={() => setEditedQuantity(prev => Math.max(0.5, prev - 0.5))}
-                    >
-                      -
-                    </button>
-
-                    <div className="flex-1 px-3 py-1.5 border rounded-md text-center bg-[hsl(var(--background))] text-sm">
-                      {editedQuantity} {mealToEdit?.foodItem.servingSize}
+                        className="w-full rounded-lg h-10 touch-manipulation"
+                      />
                     </div>
 
-                    <button
-                      className="h-8 w-8 rounded-full flex items-center justify-center border border-[hsl(var(--border))]"
-                      onClick={() => setEditedQuantity(prev => prev + 0.5)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Serving Size</label>
-                  <input
-                    type="text"
-                    value={mealToEdit?.foodItem.servingSize}
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">{t?.mobileNav?.foodDetail?.servingSize || "Serving Size"}</label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          value={typeof mealToEdit?.foodItem.servingSize === 'string' ? 
+                            (mealToEdit.foodItem.servingSize.split(' ')[0] || '1') : '1'}
                     onChange={(e) => {
                       if (mealToEdit) {
+                              let unit = 'serving';
+                              if (typeof mealToEdit.foodItem.servingSize === 'string') {
+                                const parts = mealToEdit.foodItem.servingSize.split(' ');
+                                if (parts.length > 1) {
+                                  unit = parts.slice(1).join(' ');
+                                }
+                              }
                         setMealToEdit({
                           ...mealToEdit,
                           foodItem: {
                             ...mealToEdit.foodItem,
-                            servingSize: e.target.value
+                                  servingSize: `${e.target.value} ${unit}`
                           }
                         });
                       }
                     }}
-                    className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                  />
+                          className="w-1/3 rounded-lg h-10 touch-manipulation"
+                        />
+                        <Select
+                          value={typeof mealToEdit?.foodItem.servingSize === 'string' ? 
+                            (mealToEdit.foodItem.servingSize.split(' ').slice(1).join(' ') || 'serving') : 'serving'}
+                          onValueChange={(value) => {
+                            if (mealToEdit) {
+                              let amount = '1';
+                              if (typeof mealToEdit.foodItem.servingSize === 'string') {
+                                amount = mealToEdit.foodItem.servingSize.split(' ')[0] || '1';
+                              }
+                              setMealToEdit({
+                                ...mealToEdit,
+                                foodItem: {
+                                  ...mealToEdit.foodItem,
+                                  servingSize: `${amount} ${value}`
+                                }
+                              });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-2/3 rounded-lg h-10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="serving">serving</SelectItem>
+                            <SelectItem value="g">g</SelectItem>
+                            <SelectItem value="ml">ml</SelectItem>
+                            <SelectItem value="cup">cup</SelectItem>
+                            <SelectItem value="tbsp">tbsp</SelectItem>
+                            <SelectItem value="tsp">tsp</SelectItem>
+                            <SelectItem value="pcs">pcs</SelectItem>
+                            <SelectItem value="oz">oz</SelectItem>
+                            <SelectItem value="lb">lb</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
+                    <div className="space-y-1">
                     <label className="text-sm font-medium">Calories (kcal)</label>
-                    <input
+                      <Input
                       type="number"
                       value={mealToEdit?.foodItem.calories}
                       onChange={(e) => {
@@ -384,13 +489,16 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
                           });
                         }
                       }}
-                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
+                        className="w-full rounded-lg h-10 touch-manipulation"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Protein (g)</label>
-                    <input
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Macronutrients (g)</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-[hsl(var(--foreground))]">{t?.result?.protein || "Protein"}</label>
+                          <Input
                       type="number"
                       value={mealToEdit?.foodItem.protein}
                       onChange={(e) => {
@@ -404,13 +512,31 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
                           });
                         }
                       }}
-                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
+                            className="w-full rounded-lg h-10 touch-manipulation"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-[hsl(var(--foreground))]">{t?.result?.carbs || "Carbs"}</label>
+                          <Input
+                            type="number"
+                            value={mealToEdit?.foodItem.carbs}
+                            onChange={(e) => {
+                              if (mealToEdit) {
+                                setMealToEdit({
+                                  ...mealToEdit,
+                                  foodItem: {
+                                    ...mealToEdit.foodItem,
+                                    carbs: parseFloat(e.target.value) || 0
+                                  }
+                                });
+                              }
+                            }}
+                            className="w-full rounded-lg h-10 touch-manipulation"
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Fat (g)</label>
-                    <input
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-[hsl(var(--foreground))]">{t?.result?.fat || "Fat"}</label>
+                          <Input
                       type="number"
                       value={mealToEdit?.foodItem.fat}
                       onChange={(e) => {
@@ -424,42 +550,32 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
                           });
                         }
                       }}
-                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
+                            className="w-full rounded-lg h-10 touch-manipulation"
                     />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Carbs (g)</label>
-                    <input
-                      type="number"
-                      value={mealToEdit?.foodItem.carbs}
-                      onChange={(e) => {
-                        if (mealToEdit) {
-                          setMealToEdit({
-                            ...mealToEdit,
-                            foodItem: {
-                              ...mealToEdit.foodItem,
-                              carbs: parseFloat(e.target.value) || 0
-                            }
-                          });
-                        }
-                      }}
-                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-transparent"
-                    />
-                  </div>
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-[hsl(var(--muted))] border border-[hsl(var(--border))]">
+                    <AlertCircle className="h-4 w-4 text-[hsl(var(--foreground))] flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                        {t?.mobileNav?.foodDetail?.warningTitle || "การเปลี่ยนแปลงนี้จะมีผลกับรายการนี้เท่านั้น"}
+                      </p>
+                      <p className="text-xs mt-0.5 text-[hsl(var(--muted-foreground))]">
+                        {t?.mobileNav?.foodDetail?.warningDesc || "การแก้ไขนี้ไม่มีผลกับอาหารชนิดนี้ที่เคยบันทึกไว้ หรือต้นแบบของอาหารในรายการส่วนตัว"}
+                      </p>
+                    </div>
                 </div>
 
-                <div className="text-right text-sm text-[hsl(var(--primary))]">
-                  Total Calories: {Math.round(mealToEdit?.foodItem.calories * editedQuantity)} kcal
-                </div>
-
-                <div className="flex justify-end mt-6 pb-20">
-                  <button
+                  <Button
+                    className="w-full h-12 text-sm rounded-lg"
                     onClick={handleSaveEditedMeal}
-                    className="bg-[hsl(var(--primary))] text-white px-4 py-2 rounded-md"
                   >
-                    Save
-                  </button>
+                    <Save className="h-4 w-4 mr-2" />
+                    {t?.mobileNav?.foodDetail?.saveChanges || "บันทึกการเปลี่ยนแปลง"}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -468,6 +584,28 @@ export function PopupsProvider({ children }: { children: ReactNode }) {
       </div>
     </PopupsContext.Provider>
   );
+}
+
+// Helper function to get emoji based on food category
+function getCategoryEmoji(category: string): JSX.Element {
+  switch (category) {
+    case 'protein':
+      return <span>🥩</span>;
+    case 'dairy':
+      return <span>🧀</span>;
+    case 'fruit':
+      return <span>🍎</span>;
+    case 'vegetable':
+      return <span>🥦</span>;
+    case 'grain':
+      return <span>🍞</span>;
+    case 'beverage':
+      return <span>🥤</span>;
+    case 'snack':
+      return <span>🍿</span>;
+    default:
+      return <span>🍽️</span>;
+  }
 }
 
 // Custom Hook สำหรับเรียกใช้ Context
