@@ -1,5 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  experimental: {
+    optimizeUniversalDefaults: true,
+  },
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   darkMode: ["class", ".dark"],
   content: [
     './pages/**/*.{ts,tsx}',

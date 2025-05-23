@@ -192,7 +192,6 @@ export const aiAssistantTranslations = {
         add: "Add",
         history: "Stats",
         settings: "Settings",
-        social: "Social Club",
         close: "Close"
       }
     },
@@ -397,7 +396,6 @@ export const aiAssistantTranslations = {
         add: "เพิ่ม",
         history: "สถิติ",
         settings: "ตั้งค่า",
-        social: "โซเชียลคลับ",
         close: "ปิด"
       }
     },
@@ -602,7 +600,6 @@ export const aiAssistantTranslations = {
         add: "追加",
         history: "統計",
         settings: "設定",
-        social: "ソーシャルクラブ",
         close: "閉じる"
       }
     },
@@ -807,7 +804,6 @@ export const aiAssistantTranslations = {
         add: "添加",
         history: "统计",
         settings: "设置",
-        social: "社交俱乐部",
         close: "关闭"
       }
     },

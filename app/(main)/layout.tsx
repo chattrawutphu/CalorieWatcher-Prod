@@ -7,9 +7,14 @@ import PageTransition from "@/components/page-transition";
 import { useNutritionStore } from "@/lib/store/nutrition-store";
 import { useLanguage } from "@/components/providers/language-provider";
 import { LocalStorageManager } from "@/lib/utils/local-storage-manager";
+import { 
+  useMobileOptimizations, 
+  useResourceManager, 
+  useDeviceCapabilities,
+  useBatchedUpdates 
+} from "@/lib/hooks/use-performance";
 
 // ตัวแปรกลาง state เพื่อเก็บข้อมูลว่าได้โหลดข้อมูลเริ่มต้นแล้วหรือยัง
-// ใช้วิธีนี้แทนการเก็บใน localStorage เพื่อลดการเข้าถึง disk I/O
 const appInitializationState = {
   isInitialized: false,
   lastInitTime: 0,
@@ -17,9 +22,12 @@ const appInitializationState = {
   cachedRouteData: new Map<string, any>()
 };
 
-// Skeleton loader component
-const PageSkeleton = memo(() => (
-  <div className="animate-pulse space-y-4 py-4">
+// Optimized Skeleton loader component
+const PageSkeleton = memo(() => {
+  const { shouldReduceAnimations } = useDeviceCapabilities();
+  
+  return (
+    <div className={`space-y-4 py-4 ${shouldReduceAnimations ? '' : 'animate-pulse'}`}>
     <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-1/3"></div>
     <div className="space-y-2">
       <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
@@ -27,7 +35,8 @@ const PageSkeleton = memo(() => (
       <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
     </div>
   </div>
-));
+  );
+});
 
 // เพิ่มฟังก์ชันสำหรับล้าง cache เมื่อมีการเปลี่ยนแปลงข้อมูล
 const clearPageCache = (pageKey: string) => {
@@ -46,6 +55,12 @@ export default memo(function MainLayout({
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(!appInitializationState.isInitialized);
   
+  // Performance hooks
+  useMobileOptimizations();
+  const { addResource } = useResourceManager();
+  const { isLowEnd } = useDeviceCapabilities();
+  const batchUpdate = useBatchedUpdates();
+  
   // เก็บข้อมูลเวลาการเข้าถึงล่าสุดของแต่ละหน้า
   const pageLastVisitedRef = useRef<Record<string, number>>(appInitializationState.pageVisitTimes);
   
@@ -58,16 +73,17 @@ export default memo(function MainLayout({
   // ดึง page key จาก pathname
   const pageKey = useMemo(() => pathname.split('/')[1] || 'home', [pathname]);
 
-  // เมื่อเริ่มต้นแอพหรือเมื่อรีเฟรช ให้โหลดข้อมูลจาก localStorage
+  // Optimized initialization for low-end devices
   useEffect(() => {
     const currentTime = Date.now();
     
     // โหลดข้อมูลเฉพาะเมื่อ:
     // 1. ยังไม่เคยโหลดข้อมูลเลย หรือ
-    // 2. โหลดข้อมูลครั้งล่าสุดเกิน 5 นาที
+    // 2. โหลดข้อมูลครั้งล่าสุดเกิน 5 นาที (10 นาทีสำหรับ low-end devices)
+    const cacheTimeout = isLowEnd ? 10 * 60 * 1000 : 5 * 60 * 1000;
     const shouldInitialize = 
       !appInitializationState.isInitialized || 
-      (currentTime - appInitializationState.lastInitTime > 5 * 60 * 1000);
+      (currentTime - appInitializationState.lastInitTime > cacheTimeout);
     
     if (shouldInitialize) {
       // แสดง loading state
@@ -78,10 +94,17 @@ export default memo(function MainLayout({
         // โหลดข้อมูลเริ่มต้น
         await initializeData();
         
-        // ใช้ requestIdleCallback เพื่อไม่ block main thread
-        const runWhenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
+        // ใช้ requestIdleCallback หรือ setTimeout สำหรับ low-end devices
+        const runWhenIdle = (callback: () => void) => {
+          if (isLowEnd) {
+            setTimeout(callback, 50);
+          } else {
+            (window.requestIdleCallback || ((fn: () => void) => setTimeout(fn, 1)))(callback);
+          }
+        };
         
         runWhenIdle(() => {
+          batchUpdate(() => {
           // อัปเดต global state
           appInitializationState.isInitialized = true;
           appInitializationState.lastInitTime = currentTime;
@@ -92,6 +115,7 @@ export default memo(function MainLayout({
           
           // จบการโหลด
           setIsLoading(false);
+          });
         });
       });
     } else {
@@ -101,15 +125,15 @@ export default memo(function MainLayout({
       setIsLoading(false);
     }
     
-    // Flush LocalStorageManager เมื่อเปลี่ยนหน้า
-    return () => {
+    // Add cleanup for LocalStorageManager
+    addResource(() => {
       if (LocalStorageManager) {
         LocalStorageManager.flush(true);
       }
-    };
-  }, [initializeData, pageKey]);
+    });
+  }, [initializeData, pageKey, isLowEnd, batchUpdate, addResource]);
 
-  // Prefetch main routes ตั้งแต่แรก และ prefetch เพิ่มเติมตามหน้าปัจจุบัน
+  // Optimized prefetching based on device capabilities
   useEffect(() => {
     // หน้าหลักที่ควร prefetch ด้วย priority สูง
     const mainRoutes = ['/dashboard', '/home', '/stats', '/settings'];
@@ -119,17 +143,29 @@ export default memo(function MainLayout({
       'dashboard': ['/add', '/stats/day', '/settings/data'],
       'home': ['/dashboard', '/settings', '/stats'],
       'stats': ['/dashboard', '/stats/day', '/stats/month'],
-      'settings': ['/settings/data', '/settings/appearance', '/settings/admin'],
+      'settings': ['/settings/data', '/settings/appearance'],
       'add': ['/dashboard', '/home']
     };
     
     // Prefetch หน้าหลักที่สำคัญที่สุดก่อน
+    const prefetchMainRoutes = () => {
     mainRoutes.forEach(route => {
       router.prefetch(route);
     });
+    };
+    
+    // สำหรับ low-end devices ให้ prefetch น้อยลง
+    if (isLowEnd) {
+      // Prefetch เฉพาะหน้าปัจจุบันและหน้าที่เกี่ยวข้อง
+      const currentRoute = `/${pageKey}`;
+      if (mainRoutes.includes(currentRoute)) {
+        router.prefetch(currentRoute);
+      }
+    } else {
+      prefetchMainRoutes();
     
     // Prefetch หน้าตามบริบทเมื่อ browser ว่าง
-    const runWhenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 10));
+      const runWhenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 100));
     
     runWhenIdle(() => {
       // ดึงรายการหน้าตามบริบทของหน้าปัจจุบัน
@@ -140,7 +176,8 @@ export default memo(function MainLayout({
         router.prefetch(route);
       });
     });
-  }, [router, pageKey]);
+    }
+  }, [router, pageKey, isLowEnd]);
 
   // คำนวณว่าควรแสดง skeleton loader หรือไม่
   const shouldShowSkeleton = isLoading || !appInitializationState.isInitialized;

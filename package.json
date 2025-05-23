@@ -3,11 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-build": "npm ci --legacy-peer-deps && npm run build"
+    "vercel-build": "npm ci --legacy-peer-deps && npm run build",
+    "analyze": "ANALYZE=true npm run build",
+    "perf:monitor": "node scripts/performance-monitor.js",
+    "perf:optimize": "node scripts/optimize-performance.js",
+    "build:fast": "next build --experimental-build-mode=compile"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.8.0",
